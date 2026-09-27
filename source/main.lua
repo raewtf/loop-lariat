@@ -1,5 +1,5 @@
 -- Build target. 'peedee' or 'love'
-platform = 'peedee'
+platform = 'love'
 local fps = 30
 
 local pd
@@ -178,6 +178,8 @@ function load_common_fonts()
 		root_beer_med_inverted = newfont('fonts/root_beer_med_inverted')
 		root_beer_med_outline = newfont('fonts/root_beer_med_outline')
 
+		root_beer_small = newfont('fonts/root_beer_small')
+
 		fonts_loaded = true
 	end
 end
@@ -218,13 +220,9 @@ function commalize(amount)
   	return formatted
 end
 
--- TODO: itch page description
--- TODO: publicize github repo
--- TODO: write manual
--- TODO: screenshots for itch page
+-- NOTE: write manual
+-- NOTE: screenshots for itch page
 
--- TODO: catalog web wide/itch banner
--- TODO: catalog web small
 -- TODO: catalog app feature
 -- TODO: catalog app billboard
 -- TODO: catalog app wide
@@ -266,6 +264,21 @@ elseif platform == 'love' then
 	function love.keypressed(key)
 		save.gamepad = gamepad
 		gamepad = false
+		if key == 'escape' and vars ~= nil then
+			if vars.player_1 ~= nil then -- playing the game
+				if vars.paused then
+					game:unpause()
+				else
+					game:pause()
+				end
+			elseif vars.handler == 'remap' then -- remapping keyboard controls
+				options:restorebuttons()
+				playsound(sfx_back)
+				vars.remap_step = 1
+				vars.handler = 'options'
+				savegame()
+			end
+		end
 		if key == 'f11' then
 			fullscreen = not fullscreen
 			love.window.setFullscreen(fullscreen)
@@ -278,7 +291,7 @@ elseif platform == 'love' then
 	end
 
 	function love.gamepadpressed(joystick, button)
-		if vars.handler ~= "remap" then
+		if vars.handler ~= 'remap' then
 			current_joystick = joystick
 			local key
 			if button == 'start' then
@@ -391,6 +404,11 @@ elseif platform == 'love' then
 		end
 	end
 
+	function love.joystickremoved()
+		-- pause game if it's running and a controller is disconnected
+		if vars ~= nil and vars.player_1 ~= nil and not vars.paused then game:pause() end
+	end
+
 	function rumble(left, right, duration)
 		if save.rumble and save.gamepad and current_joystick:isVibrationSupported() then
 			current_joystick:setVibration(left, right, duration)
@@ -402,6 +420,8 @@ elseif platform == 'love' then
 			love.mouse.setVisible(false)
 		else
 			love.mouse.setVisible(true)
+			-- pause game if it's running and window's defocused
+			if vars ~= nil and vars.player_1 ~= nil and not vars.paused then game:pause() end
 		end
 	end
 
@@ -444,8 +464,9 @@ elseif platform == 'love' then
 	function love.update(dt)
 		next_time = next_time + min_dt
 
+		timer.update(dt, transition)
+
 		if vars ~= nil and not vars.paused then
-			timer.update(dt, transition)
 			timer.update(dt)
 		end
 
@@ -479,7 +500,9 @@ elseif platform == 'love' then
 	function drawontop()
 		setcolor(255, 255, 255, 1, 'black')
 
-		-- TODO: Draw transition stuff here
+		if transitioning then
+			drawimagetable(fade_white, floor(value('transition')), 0, 0)
+		end
 
 		gfx.setScissor()
 

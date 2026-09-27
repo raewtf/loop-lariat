@@ -2,10 +2,12 @@ local pd
 local gfx
 local center
 local right
+local exp = math.exp
 local min = math.min
 local max = math.max
 local floor = math.floor
 local find = string.find
+local format = string.format
 
 if platform == 'peedee' then
 	pd = playdate
@@ -43,22 +45,6 @@ elseif platform == 'love' then
 		self:initialize(args)
 	end
 end
-
--- TODO: implement reduce flashing
-	-- no block flash animation
-	-- no block clear animation
-	-- no block shake animation
--- TODO: pause menu on PC on ESC, controller disconnect, or window defocus
--- TODO: different modes based on scene transition-in arg
--- 'arcade': start with limited time. make moves. successful lassos give you more time.
-	-- maybe a start arg as well; 60 seconds? 5 minutes? 10 minutes?
--- 'time': start with limited time, make moves. the timer is static!
-	-- maybe a start arg as well; 60 seconds? 5 minutes? 10 minutes?
--- 'marathon': infinite time. make moves until the board is filled.
--- 'daily': like marathon, but with a seed based on the current year/month/day.
--- 'vs': fight against a second opponent. successful lassos send garbage tumbleweeds over to the other screen
-	-- arg for who the second player is. 'p2' (human) or 'cpu'
--- 'chill': endless mode. if you fill the board, it just clears the whole thing.
 
 function game:initialize(args)
 	assets = {
@@ -119,6 +105,7 @@ function game:initialize(args)
 		tumble = newimage('images/game/blocks/tumble'),
 
 		countdown = newimagetable('images/game/countdown', 400, 240, 60),
+		half = newimage('images/half'),
 	}
 
 	vars = {
@@ -126,19 +113,32 @@ function game:initialize(args)
 		arg1 = args[2], -- if 'arcade' or 'time', number in milliseconds. if 'vs', string that's either 'p2' or 'cpu'.
 		arg2 = args[3], -- if 'vs', array with number of wins for each player.
 		garbage_threshold = 3,
+		paused = false,
 	}
 
 	loopingtimer('tnt_prime_1', 150, 1, 2.99, 'linear')
 	loopingtimer('tnt_prime_2', 100, 2, 3.99, 'linear')
+	loopingtimer('anim_overlay', 2000, 1, 4.99, 'linear')
 
-	randomseed()
+	if vars.mode == 'daily' then
+		local time
+		if platform == 'peedee' then
+			time = pd.getGMTTime()
+		elseif platform == 'love' then
+			time = os.date('*t')
+		end
+		vars.seed = time.year .. format('%02d', time.month) .. format('%02d', time.day)
+		setRandomSeed(vars.seed)
+	else
+		randomseed()
+	end
 
 	-- defining player stats, scores, 'n' such
 	for i = 1, (vars.mode == 'vs' and 2 or 1) do
 		vars['player_' .. i] = {}
 		local p = vars['player_' .. i]
 
-		p.handler = 'waiting' -- play handler
+		p.handler = 'countdown' -- play handler
 		p.score = 0 -- score
 		p.lassos = 0 -- lassos this round
 		-- blocks being juggled
@@ -176,15 +176,6 @@ function game:initialize(args)
 		}
 		p.first_lasso_segment = {}
 		p.lassos_in_match = {}
-		-- placing outlaws
-		for i = 1, randInt(1, 3) do
-			local x = randInt(2, #p.board - 1)
-			local y = randInt(2, #p.board[1] - 1)
-			p.board[x][y] = {
-				original_block = 'outlaw',
-				block = 'outlaw',
-			}
-		end
 		newtimer('anim_board_shake_' .. i, 0, 0, 0)
 
 		-- garbage tumbleweed status. only necessary in vs mode
@@ -211,19 +202,28 @@ function game:initialize(args)
 	end
 
 	if vars.mode == 'arcade' then
-		-- TODO: background in arcade
+		assets.bg = newimage('images/game/bg_arcade_1')
+		assets.clouds = newimage('images/game/clouds')
+		assets.bg_2 = newimage('images/game/bg_arcade_2')
+		assets.ui = newimage('images/game/1p_ui')
+		loopingtimer('clouds', 125000, 0, -1200, 'linear')
 	elseif vars.mode == 'time' then
 		assets.bg = newimage('images/game/bg_time_1')
 		assets.clouds = newimage('images/game/clouds')
 		assets.bg_2 = newimage('images/game/bg_time_2')
 		assets.ui = newimage('images/game/1p_ui')
+		assets.anim_overlay = newimagetable('images/game/time_anim_overlay', 400, 240, 4)
 		loopingtimer('clouds', 125000, 0, -1200, 'linear')
 	elseif vars.mode == 'marathon' then
 		assets.bg = newimage('images/game/bg_marathon')
 		assets.ui = newimage('images/game/1p_ui')
+		assets.anim_overlay = newimagetable('images/game/marathon_anim_overlay', 400, 240, 4)
 	elseif vars.mode == 'daily' then
-		-- TODO: background in daily
+		assets.bg = newimage('images/game/bg_daily')
+		assets.ui = newimage('images/game/1p_ui')
+		assets.anim_overlay = newimagetable('images/game/daily_anim_overlay', 400, 240, 4)
 	elseif vars.mode == 'vs' then
+		-- TODO: colorize win images in löve
 		assets.wins_0_0 = newimage('images/game/wins/wins_' .. vars.arg1 .. '_0_0')
 		assets.wins_1_0 = newimage('images/game/wins/wins_' .. vars.arg1 .. '_1_0')
 		assets.wins_2_0 = newimage('images/game/wins/wins_' .. vars.arg1 .. '_2_0')
@@ -239,14 +239,35 @@ function game:initialize(args)
 		assets.ui = newimage('images/game/2p_ui')
 		loopingtimer('clouds', 125000, 0, -1200, 'linear')
 	elseif vars.mode == 'chill' then
-		-- TODO: background in chill
+		assets.bg = newimage('images/game/bg_chill')
+		assets.ui = newimage('images/game/1p_ui')
+		assets.anim_overlay = newimagetable('images/game/chill_anim_overlay', 400, 240, 4)
 	end
 
-	-- TODO: countdown SFX
-	afterdelay('countdown_delay', 1000, function()
-		newtimer('countdown', 4000, 1, 60, 'linear', function()
-			vars.player_1.handler = 'playing'
-			-- TODO: newmusic()
+	afterdelay('outlaw_delay', 1000, function()
+		-- place down the outlaws
+		self:place_outlaws(1)
+		if vars.mode == 'vs' then self:place_outlaws(2) end
+
+		afterdelay('countdown_delay', 1000, function()
+			if vars.mode == 'chill' then
+				vars.player_1.handler = 'playing'
+				newmusic('audio/music/chill', true)
+			else
+				newmusic('audio/music/countdown')
+				newtimer('countdown', 4000, 1, 60, 'linear', function()
+					if vars.mode == 'arcade' or vars.mode == 'time' then
+						newtimer('time', arg1 or 60000, 60000, 0, 'linear', function()
+							self:over(1)
+						end)
+					end
+
+					vars.player_1.handler = 'playing'
+					afterdelay('start_music', 500, function()
+						newmusic('audio/music/game', true)
+					end)
+				end)
+			end
 		end)
 	end)
 end
@@ -271,15 +292,73 @@ function game:update()
 		p.blocks.hold_y_offset = p.blocks.hold_y_offset - (p.blocks.hold_y_offset * 0.5)
 	end
 
-	-- TODO: outlaw check
-	-- if board has no outlaws in, and at least FOUR spots open (just so the outlaws don't cause an immediate game over, i guess)
-	-- then run the rand outlaw check from generation time again
+	-- doing mid-game checks
+	for i = 1, (vars.mode == 'vs' and 2 or 1) do
+		local p = vars['player_' .. i]
 
-	-- TODO: game over check
-	-- if time = 0, OR
-	-- if player has input
-	-- and all blocks are filled
-	-- and the current (or held) item isn't a TNT
+		if p.handler == 'playing' then
+			local tiles = 0
+			local tiles_filled = 0
+			local tiles_excluding_edges = 0
+			local tiles_filled_excluding_edges = 0
+			local outlaws_on_board = 0
+			local is_edge
+
+			for n = 1, #p.board do
+				for j = 1, #p.board[1] do
+					-- total number of tiles on the board
+					tiles = tiles + 1
+
+					-- calculating the tiles that aren't edges, for outlaw spawning
+					is_edge = true
+					if n ~= 1 and n ~= #p.board and j ~= 1 and j ~= #p.board[1] then
+						is_edge = false
+						tiles_excluding_edges = tiles_excluding_edges + 1
+					end
+
+					-- check if block exists
+					if p.board[n][j].block ~= nil then
+						-- this tile is filled with something!
+						tiles_filled = tiles_filled + 1
+						if not is_edge then tiles_filled_excluding_edges = tiles_filled_excluding_edges + 1 end
+
+						-- check if that block's an outlaw, while we're in here
+						if p.board[n][j].block == 'outlaw' then
+							outlaws_on_board = outlaws_on_board + 1
+						end
+					end
+				end
+			end
+
+			-- this player has no outlaws on their board. give 'em some more!
+			if outlaws_on_board == 0 and tiles_filled_excluding_edges <= (tiles_excluding_edges - 3) then self:place_outlaws(i) end
+
+			-- if the entire board is full, and the player doesn't have a TNT to potentially clear it with,
+			if tiles_filled == tiles and (p.blocks.current ~= 'tnt' and p.blocks.held ~= 'tnt') then
+				if vars.mode == 'chill' then
+					-- in chill mode, there's no game overs. just clear the board and let them try again
+					p.handler = 'clearing'
+					afterdelay('clear_board', 500, function()
+						for n = 1, #p.board do
+							for j = 1, #p.board[1] do
+								p.board[n][j] = {}
+								newtimer('anim_block_clear_' .. i .. '_' .. n .. '_' .. j, 150, 1, 5)
+							end
+						end
+						playsound(sfx_match_clear)
+						resettimer('anim_board_shake_' .. i, 500, 5, 0, 'linear', function()
+							if p.handler == 'clearing' then -- check if handler's still waiting; otherwise don't return input.
+								p.handler = 'playing'
+							end
+						end)
+					end)
+				else
+					-- run game over sequence!!
+					self:over(i)
+				end
+			end
+		end
+	end
 end
 
 function game:draw()
@@ -287,16 +366,13 @@ function game:draw()
 	drawimage(assets.bg, 0, 0)
 	if assets.clouds ~= nil then drawimage(assets.clouds, value('clouds'), 0) end
 	if assets.bg_2 ~= nil then drawimage(assets.bg_2, 0, 0) end
-
-	-- TODO: blowing dead bush in time mode
-	-- TODO: ripples in the coffee cup in marathon mode
+	if assets.anim_overlay ~= nil then drawimagetable(assets.anim_overlay, floor(value('anim_overlay')), 0, 0) end
 
 	-- UI drawing
 	if vars.mode == 'vs' then
 		drawimage(assets.ui, 0, 0)
 
 		-- score/time displays
-		-- TODO: plug in variables for these
 		drawtext(root_beer_med_outline, 'P1 Score', 163, 51)
 		drawtext(root_beer_outline, commalize(vars.player_1.score), 163, 62)
 		drawtext(root_beer_med_outline, 'P2 Score', 237, 99, right)
@@ -336,19 +412,23 @@ function game:draw()
 		-- score/time display
 		drawtext(root_beer_med_outline, 'Score', 272, 51)
 		drawtext(root_beer_outline, commalize(p.score), 272, 62)
+
 		if vars.mode == 'daily' then
 			drawtext(root_beer_med_outline, 'Seed', 272, 99)
-			-- TODO: add seed value here
-			drawtext(root_beer_outline, 20260926, 272, 110)
+			drawtext(root_beer_med_outline, vars.seed, 272, 114)
 		elseif vars.mode == 'chill' then
+			drawtext(root_beer_med_outline, 'Lassos', 272, 99)
+			drawtext(root_beer_outline, commalize(p.lassos), 272, 110)
 		else
 			drawtext(root_beer_med_outline, 'Best', 272, 99)
 			drawtext(root_beer_outline, commalize(max(p.score, save[vars.mode .. '_best'])), 272, 110)
 		end
+
 		if vars.mode == 'arcade' or vars.mode == 'time' then
 			drawtext(root_beer_med_outline, 'Timer', 272, 147)
-			-- TODO: add timer value here
-			drawtext(root_beer_outline, '00:00', 272, 158)
+			local time = value('time')
+			if time == nil then time = vars.arg1 ~= nil and vars.arg1 or 60000 end
+			drawtext(root_beer_outline, format('%02d:%02d', floor((time / 1000) / 60), floor((time / 1000) % 60)), 272, 158)
 		elseif vars.mode == 'marathon' or vars.mode == 'daily' then
 			drawtext(root_beer_med_outline, 'Lassos', 272, 147)
 			drawtext(root_beer_outline, commalize(p.lassos), 272, 158)
@@ -381,15 +461,17 @@ function game:draw()
 	local tnt_prime_level
 	local tnt_prime_value
 
+	local flash = getreduceflashing()
+
 	-- drawing game board for the player(s)
 	for i = 1, (vars.mode == 'vs' and 2 or 1) do
 		local p = vars['player_' .. i]
-		shake_value = value('anim_board_shake_' .. i)
+		shake_value = flash and 0 or value('anim_board_shake_' .. i)
 
 		for n = 1, #p.board do
 			bs_x = floor((randFloat(-1, 1) * shake_value) / 2) * 2
 
-			for j = 1, #p.board[i] do
+			for j = 1, #p.board[1] do
 				bs_y = floor((randFloat(-1, 1) * shake_value) / 2) * 2
 				local tile = p.board[n][j]
 
@@ -412,7 +494,7 @@ function game:draw()
 					end
 
 					-- draw shine animation for appearing
-					shine_value = value('anim_block_shine_' .. i .. '_' .. n .. '_' .. j)
+					shine_value = flash and nil or value('anim_block_shine_' .. i .. '_' .. n .. '_' .. j)
 					if shine_value ~= nil and shine_value >= 1 and shine_value <= 3 then
 						drawimage(assets['block_shine_' .. floor(shine_value)], p.board_x_origin + ((n - 1) * block_w) + bs_x, p.board_y_origin + ((j - 1) * block_h) + bs_y)
 					end
@@ -420,7 +502,7 @@ function game:draw()
 				end
 
 				-- draw clear animation for disappearing, regardless of if there's actually a block there.
-				clear_value = value('anim_block_clear_' .. i .. '_' .. n .. '_' .. j)
+				clear_value = flash and nil or value('anim_block_clear_' .. i .. '_' .. n .. '_' .. j)
 				if clear_value ~= nil and clear_value >= 1 and clear_value <= 4 then
 					drawimage(assets['block_clear_' .. floor(clear_value)], p.board_x_origin + ((n - 1) * block_w) + bs_x, p.board_y_origin + ((j - 1) * block_h) + bs_y)
 				end
@@ -453,12 +535,86 @@ function game:draw()
 		drawimagetable(assets.countdown, floor(value('countdown')), 0, 0)
 	end
 
+	-- NOTE: draw pause screen if vars.paused is true
+	if vars.paused then
+		drawimage(assets.half, 0, 0)
+	end
+
 	drawontop()
+end
+
+-- pause function, in löve
+function game:pause()
+	if not vars.paused then
+		setmusicvolume(0.5)
+		vars.paused = true
+		vars.player_1.oldhandler = vars.player_1.handler
+		vars.player_1.handler = 'paused'
+		if vars.mode == 'vs' then
+			vars.player_2.oldhandler = vars.player_2.handler
+			vars.player_2.handler = 'paused'
+		end
+		vars.pause_selections = {'resume', 'quit'}
+		vars.pause_selection = 1
+	end
+end
+
+-- unpause function, in löve
+function game:unpause()
+	if vars.paused then
+		setmusicvolume(1)
+		vars.paused = false
+		vars.player_1.handler = vars.player_1.oldhandler
+		if vars.mode == 'vs' then
+			vars.player_2.handler = vars.player_2.oldhandler
+		end
+	end
+end
+
+-- placing outlaws in the grid, grandomly
+function game:place_outlaws(player)
+	-- player arg
+	local p = vars['player_' .. player]
+	local outlaws_placed = 0
+	local outlaws_needed = randInt(1, 3)
+	local outlaws_queued = {}
+	local outlaw_queued
+
+	if p.handler == 'playing' then p.handler = 'placing_outlaws' end
+
+	while outlaws_placed < outlaws_needed do
+		local x = randInt(2, #p.board - 1)
+		local y = randInt(2, #p.board[1] - 1)
+
+		-- making sure there isn't already an outlaw queued for the new spot
+		outlaw_queued = false
+		for i = 1, #outlaws_queued do
+			if outlaws_queued[i][1] == x and outlaws_queued[i][2] == y then
+				outlaw_queued = true
+			end
+		end
+
+		if p.board[x][y].block == nil and not outlaw_queued then
+			table.insert(outlaws_queued, {x, y})
+			afterdelay('outlaw_' .. player .. '_' .. outlaws_placed, outlaws_placed * 100, function()
+				p.board[x][y] = {
+					original_block = 'outlaw',
+					block = 'outlaw',
+				}
+				newtimer('anim_block_shine_' .. player .. '_' .. x .. '_' .. y, 150, 1, 4)
+				playsound(sfx_block_in)
+				if outlaws_placed == outlaws_needed and p.handler == 'placing_outlaws' then
+					p.handler = 'playing'
+				end
+			end)
+			outlaws_placed = outlaws_placed + 1
+		end
+	end
 end
 
 -- generate a (weighted-)random block to add into the player's queue.
 function game:random_block()
-	local rand = randInt(1, 100)
+	local rand = randInt(1, 105)
 	if rand >= 1 and rand <= 20 then
 		return 'lasso_u_d'
 	elseif rand >= 21 and rand <= 40 then
@@ -471,7 +627,7 @@ function game:random_block()
 		return 'lasso_d_l'
 	elseif rand >= 71 and rand <= 80 then
 		return 'lasso_d_r'
-	elseif rand >= 81 and rand <= 100 then
+	elseif rand >= 81 and rand <= 105 then
 		return 'tnt'
 	end
 end
@@ -547,10 +703,8 @@ function game:place_block(player)
 		afterdelay('tnt_prime_1_' .. player, 333, function() p.blocks.tnt_prime_level = 1 rumble(0.25, 0.25, 0.3) end)
 		afterdelay('tnt_prime_2_' .. player, 666, function() p.blocks.tnt_prime_level = 2 rumble(0.5, 0.5, 0.3) end)
 		afterdelay('tnt_explosion_' .. player, 1000, function()
-			-- explosion SFX
-			local rand = randInt(1, 3)
-			-- yuck.
-			playsound(_G['sfx_explode_' .. rand])
+			-- explosion SFX (sorry for the global call)
+			playsound(_G['sfx_explode_' .. randInt(1, 3)])
 
 			rumble(1, 1, 0.75)
 			p.board[x][y] = {}
@@ -583,8 +737,10 @@ function game:place_block(player)
 		p.blocks.next = self:random_block() -- draw a random block from the bag for the next block
 		p.blocks.hold_used = false
 
-		lasso = self:find_lasso_segment(1)
-		-- TODO: garbage check if no lasso match was found up there.
+		lasso = self:find_lasso_segment(player)
+		if not lasso then
+			self:garbage_check(player)
+		end
 	else
 		resettimer('anim_cursor_bonk_' .. player, 150, 1, 3)
 		playsound(sfx_no_place)
@@ -620,6 +776,8 @@ function game:find_lasso_segment(player, skip_match)
 			break
 		end
 	end
+
+	if p.handler ~= 'matching' then return false end
 end
 
 -- pass in a lasso segment. this function will check for any connections, and then start checking any adjacent lasso segments.
@@ -746,6 +904,15 @@ function game:lasso_match(player)
 
 	p.handler = 'matching'
 	playsound(sfx_match)
+	p.lassos = p.lassos + 1
+
+	if vars.mode == 'arcade' then
+		local time = value('time')
+		local new_time = time + (20000 * exp(-0.105 * p.lassos))
+		resettimer('time', new_time, new_time, 0, 'linear', function()
+			self:over(1)
+		end)
+	end
 
 	for i = 1, #p.lassos_in_match do
 		local anim_lasso_x = p.lassos_in_match[i][1]
@@ -821,11 +988,42 @@ function game:lasso_match(player)
 end
 
 function game:garbage_check(player)
-	-- TODO: only do in VS mode
-	-- TODO: garbage check and advance warning level (if there's garbage)
-	-- TODO: garbage imminent warning SFX
-	-- TODO: garbage throw down SFX
-	-- TODO: rumble on garbage throw down
+	-- TODO: garbage check
+		-- only do in VS mode
+		-- garbage check and advance warning level (if there's garbage)
+		-- garbage imminent warning SFX
+		-- garbage throw down SFX
+		-- rumble on garbage throw down
+end
+
+function game:over(player)
+	-- this player lost! remember that.
+	local p = vars['player_' .. player]
+
+	stopmusic()
+	playsound(_G['sfx_explode_' .. randInt(1, 3)])
+	p.handler = 'gameover'
+	rumble(1, 1, 1)
+
+	if vars.time ~= nil then
+		local time = value('time')
+		resettimer('time', 0, time, time)
+	end
+
+	resettimer('anim_board_shake_' .. player, 1000, 5, 0, 'linear', function()
+		newmusic('audio/music/chill', true)
+		-- NOTE: finish game over sequence
+			-- move to results view after short delay
+			-- buttons for play again and go back
+
+			-- TODO: VS end screen stuff
+			-- if it's VS, add a point to the player who didn't lose
+			-- if it's VS, show the player who won the match
+			-- if it's VS and there's no 3-set winner, just play again
+			-- if it's VS and there *is* a 3-set winner, just go back
+			-- if there's a 3-set winner, show them more prominently than just round winner, btw
+	end)
+
 end
 
 function game:keypressed(button)
@@ -879,6 +1077,8 @@ function game:keypressed(button)
 		elseif button == (platform == 'peedee' and 'a' or platform == 'love' and save.primary) then
 			self:place_block(1)
 		end
+	elseif vars.player_1.handler == 'paused' then
+
 	end
 end
 

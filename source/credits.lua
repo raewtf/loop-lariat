@@ -41,41 +41,44 @@ end
 
 function credits:initialize(args)
 	assets = {
+		bg = newimage('images/credits/bg'),
 	}
 
 	vars = {
 		handler = '',
 	}
 	afterdelay('inputdelay', transitioning and transitiontime or 0, function() vars.handler = 'credits' end)
-
-	-- TODO: newmusic()
 end
 
 function credits:update()
 	if platform == 'peedee' then
-		if pd.buttonJustPressed('left') then self:keypressed('left') end
-		if pd.buttonJustPressed('right') then self:keypressed('right') end
 		if pd.buttonJustPressed('b') then self:keypressed('b') end
 	end
-
-	-- TODO: use crank to scroll horizontally
 end
 
 function credits:draw()
-	-- TODO: credits screen
-	-- TODO: list of wanted posters with photographs, tacked up on a bulletin board or somethin'
-	-- what they're wanted for (what they did in-game) listed underneath
-	-- arbitrary reward counts
+	drawimage(assets.bg, 0, 0)
+
+	drawtext(root_beer, text('credits_name_1'), 113, 166, center)
+	drawtext(root_beer_med, text('credits_desc_1'), 116, 193, center)
+
+	drawtext(root_beer_med, text('accomplices'), 215, 40)
+
+	drawtext(root_beer, text('credits_name_2'), 210, 60)
+	drawtext(root_beer_med, text('credits_desc_2'), 375, 85, right)
+
+	drawtext(root_beer, text('credits_name_3'), 207, 108)
+	drawtext(root_beer_med, text('credits_desc_3'), 372, 133, right)
+
+	drawtext(root_beer_small, text('credits_name_4'), 210, 160)
+	drawtext(root_beer_med, text('credits_desc_4'), 365, 208, right)
 
 	drawontop()
 end
 
 function credits:keypressed(button)
 	if vars.handler == 'credits' then
-		-- TODO: use D-pad to scroll horizontally
-		if button == (platform == 'peedee' and 'left' or platform == 'love' and save.left) then
-		elseif button == (platform == 'peedee' and 'right' or platform == 'love' and save.right) then
-		elseif button == (platform == 'peedee' and 'b' or platform == 'love' and save.secondary) then
+		if button == (platform == 'peedee' and 'b' or platform == 'love' and save.secondary) then
 			playsound(sfx_back)
 			scenemanager:transitionscene(title, true, 'credits')
 		end

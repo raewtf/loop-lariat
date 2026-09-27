@@ -43,43 +43,103 @@ elseif platform == 'love' then
 	end
 end
 
--- TODO: how to play screen
-
 function howtoplay:initialize(args)
 	assets = {
+		bg_1 = newimage('images/howtoplay/bg_1'),
+		bg_2 = newimage('images/howtoplay/bg_2'),
+		bg_3 = newimage('images/howtoplay/bg_3'),
+		bg_4 = newimage('images/howtoplay/bg_4'),
+		bg_5 = newimage('images/howtoplay/bg_5'),
+		bg_6 = newimage('images/howtoplay/bg_6'),
 	}
 
 	vars = {
 		handler = '',
+		page = 1,
+		hit_edge = false,
 	}
 	afterdelay('inputdelay', transitioning and transitiontime or 0, function() vars.handler = 'howtoplay' end)
 end
 
 function howtoplay:update()
 	if platform == 'peedee' then
-		if pd.buttonJustPressed('up') then self:keypressed('up') end
-		if pd.buttonJustPressed('down') then self:keypressed('down') end
 		if pd.buttonJustPressed('left') then self:keypressed('left') end
 		if pd.buttonJustPressed('right') then self:keypressed('right') end
 		if pd.buttonJustPressed('b') then self:keypressed('b') end
-		if pd.buttonJustPressed('a') then self:keypressed('a') end
+
+		local ticks = pd.getCrankTicks(4)
+		if vars.handler == 'howtoplay' then
+			if ticks > 0 then
+				vars.page = vars.page + 1
+				if vars.page > 6 then
+					vars.page = 6
+					if not vars.hit_edge then
+						playsound(sfx_menu_bonk)
+						vars.hit_edge = true
+					end
+				else
+					vars.hit_edge = false
+					playsound(sfx_menu_move)
+				end
+			elseif ticks < 0 then
+				vars.page = vars.page - 1
+				if vars.page < 1 then
+					vars.page = 1
+					if not vars.hit_edge then
+						playsound(sfx_menu_bonk)
+						vars.hit_edge = true
+					end
+				else
+					vars.hit_edge = false
+					playsound(sfx_menu_move)
+				end
+			end
+		end
 	end
 end
 
 function howtoplay:draw()
+	drawimage(assets['bg_' .. vars.page], 0, 0)
+
+	if vars.page % 2 == 1 then
+		drawtext(root_beer_med, text('howtoplay_' .. vars.page), 30, 45)
+	else
+		drawtext(root_beer_med, text('howtoplay_' .. vars.page), 370, 35, right)
+	end
+
+	if vars.page == 2 then
+		drawtext(root_beer_med, text('block_label_lasso'), 115, 45)
+		drawtext(root_beer_med, text('block_label_outlaw'), 145, 85)
+		drawtext(root_beer_med, text('block_label_tnt'), 125, 135)
+		drawtext(root_beer_med, text('block_label_tumble'), 145, 180)
+	end
+
 	drawontop()
 end
 
 function howtoplay:keypressed(button)
 	if vars.handler == 'howtoplay' then
-		if button == (platform == 'peedee' and 'up' or platform == 'love' and save.up) then
-		elseif button == (platform == 'peedee' and 'down' or platform == 'love' and save.down) then
-		elseif button == (platform == 'peedee' and 'left' or platform == 'love' and save.left) then
+		if button == (platform == 'peedee' and 'left' or platform == 'love' and save.left) then
+			vars.page = vars.page - 1
+			if vars.page < 1 then
+				vars.page = 1
+				playsound(sfx_menu_bonk)
+			else
+				vars.hit_edge = false
+				playsound(sfx_menu_move)
+			end
 		elseif button == (platform == 'peedee' and 'right' or platform == 'love' and save.right) then
+			vars.page = vars.page + 1
+			if vars.page > 6 then
+				vars.page = 6
+				playsound(sfx_menu_bonk)
+			else
+				vars.hit_edge = false
+				playsound(sfx_menu_move)
+			end
 		elseif button == (platform == 'peedee' and 'b' or platform == 'love' and save.secondary) then
 			playsound(sfx_back)
 			scenemanager:transitionscene(title, true, 'howtoplay')
-		elseif button == (platform == 'peedee' and 'a' or platform == 'love' and save.primary) then
 		end
 	end
 end

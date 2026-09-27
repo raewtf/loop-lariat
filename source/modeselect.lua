@@ -43,6 +43,8 @@ elseif platform == 'love' then
 	end
 end
 
+-- TODO: only one daily play per day
+
 function modeselect:initialize(args)
 	assets = {
 		bg_1 = newimage('images/modeselect/bg_1'),
@@ -56,7 +58,7 @@ function modeselect:initialize(args)
 
 	vars = {
 		handler = '',
-		selections = {'arcade', 'time', 'marathon', 'daily', 'vs_com'},
+		selections = {},
 		selection = 1,
 		old_chamber = 0,
 		chamber = 0,
@@ -66,8 +68,14 @@ function modeselect:initialize(args)
 	}
 	afterdelay('inputdelay', transitioning and transitiontime or 0, function() vars.handler = 'modeselect' end)
 
+	table.insert(vars.selections, 'arcade')
+	table.insert(vars.selections, 'time')
+	table.insert(vars.selections, 'marathon')
+	table.insert(vars.selections, 'daily')
+	-- TODO: re-enable these once i actually get 2P working. sorry jammers!
+	-- table.insert(vars.selections, 'vs_com')
 	-- only show VS 2P mode in the PC build.
-	if platform == 'love' then table.insert(vars.selections, 'vs_2p') end
+	-- if platform == 'love' then table.insert(vars.selections, 'vs_2p') end
 	table.insert(vars.selections, 'chill')
 
 	if getreduceflashing() then
@@ -88,10 +96,10 @@ function modeselect:update()
 		if pd.buttonJustPressed('b') then self:keypressed('b') end
 		if pd.buttonJustPressed('a') then self:keypressed('a') end
 
-		local ticks = pd.getCrankTicks(#vars.selections)
+		local ticks = pd.getCrankTicks(6)
 		if vars.handler == 'modeselect' then
 			if ticks > 0 then
-				vars.selection = vars.selection + ticks
+				vars.selection = vars.selection + 1
 				if vars.selection > #vars.selections then
 					vars.selection = 1
 				end
@@ -100,7 +108,7 @@ function modeselect:update()
 				vars.chamber_target = vars.chamber_target + (360 / 6)
 				vars.slerp_target = vars.slerp_target + (360 / #vars.selections)
 			elseif ticks < 0 then
-				vars.selection = vars.selection - ticks
+				vars.selection = vars.selection - 1
 				if vars.selection < 1 then
 					vars.selection = #vars.selections
 				end
@@ -146,7 +154,7 @@ function modeselect:draw()
 		slerp_offset = slerp_offset - 360 / #vars.selections
 	end
 
-	-- TODO: draw some reactive triangles to indicate scroll direction
+	-- NOTE: draw some reactive triangles to indicate scroll direction
 
 	-- pistol chamber that rotates
 	drawimagetable(assets.chamber, (floor(vars.chamber / 3) % 20) + 1, 290, 15)
@@ -154,7 +162,7 @@ function modeselect:draw()
 	-- game mode description
 	drawimage(assets.text_box, 10, 135)
 
-	-- TODO: modal if selected 'arcade' or 'time', to determine length of time
+	-- NOTE: modal if selected 'arcade' or 'time', to determine length of time
 
 	drawontop()
 end
@@ -188,9 +196,11 @@ function modeselect:keypressed(button)
 			vars.chamber_target = vars.chamber_target - (360 / 6)
 			vars.slerp_target = vars.slerp_target - (360 / #vars.selections)
 		elseif button == (platform == 'peedee' and 'b' or platform == 'love' and save.secondary) then
+			playsound(sfx_back)
 			scenemanager:transitionscene(title, true, 'modeselect')
 		elseif button == (platform == 'peedee' and 'a' or platform == 'love' and save.primary) then
 			playsound(sfx_select)
+			fademusic()
 			local sel = vars.selections[vars.selection]
 			if sel == 'arcade' then
 				scenemanager:transitionscene(game, 'arcade')
@@ -198,10 +208,14 @@ function modeselect:keypressed(button)
 				scenemanager:transitionscene(game, 'time')
 			elseif sel == 'marathon' then
 				scenemanager:transitionscene(game, 'marathon')
+			elseif sel == 'daily' then
+				scenemanager:transitionscene(game, 'daily')
 			elseif sel == 'vs_2p' then
-				scenemanager:transitionscene(game, 'vs')
+				scenemanager:transitionscene(game, 'vs', '2p')
 			elseif sel == 'vs_com' then
-				scenemanager:transitionscene(game, 'vs')
+				scenemanager:transitionscene(game, 'vs', 'cpu')
+			elseif sel == 'chill' then
+				scenemanager:transitionscene(game, 'chill')
 			end
 		end
 	end

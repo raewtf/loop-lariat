@@ -1,9 +1,6 @@
 langs = {
 	en = {
 		-- title screen
-		["title_start_1"] = "Press ",
-		["title_start_2"] = " to begin!",
-
 		["title_modeselect"] = "Round 'em Up!",
 		["title_howtoplay"] = "How to Play",
 		["title_options"] = "Options",
@@ -49,6 +46,19 @@ langs = {
 
 
 		-- how to play
+		["max_page"] = "/6",
+
+		["howtoplay_1"] = "Some rough-'n'-tumble\nbandits from the\nMeeple Crew are\nterrorizing the\ntown! You've gotta\nhelp wrangle 'em\nwith your lassos, and\nsend 'em to the ol'\nprison house.",
+		["howtoplay_2"] = "\nThere are four\ntypes of blocks\nyou can find\non the game board.\nEach one has\nits own special\nproperties!",
+		["howtoplay_3"] = "Lassos can be linked\ntogether. If you make\na full loop, they'll\nwrangle up anything\nfound inside, except other\nlassos. This is how\nyou can nab those\nnasty Meeple bandits!",
+		["howtoplay_4"] = "Dynamite will destroy\nwhatever it lands on.\nUse it to clear the\nclutter, or remove some\nunwanted lasso-bits!\nCareful, though: if\nyou blow up an\noutlaw, you won't\nearn any points!",
+		["howtoplay_5"] = "Tumbleweeds are only\nseen in the VS mode.\nThey clutter up the\nscreen, and get in\nyour way. You'll\nneed to blow\nthese suckers sky\nhigh with some of\nthat dynamite!",
+		["howtoplay_6"] = "To learn more\nabout how the\ngame is played,\nplease refer to\nthe electronic\nmanual by\nscanning the\ncode over thar.",
+
+		["block_label_lasso"] = "Lasso",
+		["block_label_outlaw"] = "Outlaw",
+		["block_label_tnt"] = "Dynamite",
+		["block_label_tumble"] = "Tumbleweed",
 
 
 
@@ -59,8 +69,8 @@ langs = {
 		["options_sfx"] = "SFX: ",
 		["options_reduceflashing"] = "Reduce Flash: ",
 		["options_rumble"] = "Rumble: ",
+		["options_clean_scaling"] = "Integer Scale: ",
 		["options_remap"] = "Remap Keyboard",
-		["options_fullscreen"] = "Fullscreen: ",
 
 		["options_false"] = "OFF",
 		["options_true"] = "ON",
@@ -72,6 +82,17 @@ langs = {
 
 
 		-- credits
+		["credits_name_1"] = "Rae",
+
+		["accomplices"] = "Accomplices:",
+
+		["credits_desc_1"] = "Drawings, code,\nmusic, and SFX",
+		["credits_name_2"] = "Font End Dev",
+		["credits_desc_2"] = "This here font",
+		["credits_name_3"] = "Eli Piilonen",
+		["credits_desc_3"] = "Randomization",
+		["credits_name_4"] = "airstruck, Matthias\nRichter, Yuichi Tateno,\nEmmanuel Oga, rxi",
+		["credits_desc_4"] = "LOVE2D stuff",
 	}
 }
 

@@ -50,6 +50,10 @@ elseif platform == 'love' then
 	end
 end
 
+-- TODO: rubdubdub check
+-- TODO: on rubdubdub, move to drink scene
+-- TODO: make drink scene
+
 function title:initialize(args)
 	assets = {
 		-- bg
@@ -84,6 +88,7 @@ function title:initialize(args)
 		random_arrows = {},
 		selection = 1,
 		bonk_offset = 0,
+		hit_edge = false,
 	}
 	afterdelay('inputdelay', transitioning and transitiontime or 0, function()
 		if vars.returning then
@@ -100,9 +105,15 @@ function title:initialize(args)
 	end
 	loopingtimer('clouds', 125000, 0, -1200, 'linear')
 
-	-- TODO: set selection based on vars.from, if it isn't nil
+	if vars.from ~= nil then
+		for i = 1, #vars.selections do
+			if vars.selections[i] == vars.from then
+				vars.selection = i
+				break
+			end
+		end
+	end
 
-	-- TODO: is random seed determinable on both platforms with this wrapper?
 	randomseed()
 
 	for i = 1, #vars.selections do
@@ -110,7 +121,7 @@ function title:initialize(args)
 		table.insert(vars.random_arrows, rand)
 	end
 
-	-- TODO: newmusic()
+	newmusic('audio/music/title', true, 1.2)
 end
 
 function title:update()
@@ -120,7 +131,36 @@ function title:update()
 		if pd.buttonJustPressed('b') then self:keypressed('b') end
 		if pd.buttonJustPressed('a') then self:keypressed('a') end
 
-		-- TODO: use crank to scroll through selections if handler == 'title'
+		local ticks = pd.getCrankTicks(4)
+		if vars.handler == 'title' then
+			if ticks > 0 then
+				vars.selection = vars.selection + 1
+				if vars.selection > #vars.selections then
+					vars.selection = #vars.selections
+					if not vars.hit_edge then
+						vars.bonk_offset = 5
+						playsound(sfx_menu_bonk)
+						vars.hit_edge = true
+					end
+				else
+					playsound(sfx_menu_move)
+					vars.hit_edge = false
+				end
+			elseif ticks < 0 then
+				vars.selection = vars.selection - 1
+				if vars.selection < 1 then
+					vars.selection = 1
+					if not vars.hit_edge then
+						vars.bonk_offset = -5
+						playsound(sfx_menu_bonk)
+						vars.hit_edge = true
+					end
+				else
+					playsound(sfx_menu_move)
+					vars.hit_edge = false
+				end
+			end
+		end
 	end
 
 	vars.bonk_offset = vars.bonk_offset - (vars.bonk_offset * 0.5)
@@ -135,10 +175,7 @@ function title:draw()
 	drawimage(assets.parallax_2, floor((parallax * 0.7) / 2) * 2, 0)
 	drawimage(assets.parallax_3, parallax * 1, 0)
 
-	drawimage(assets.logo, 35 + floor((parallax * 1.5) / 2) * 2, 15)
-
-	-- TODO: gamepad button input processing
-	drawtext(root_beer, text('title_start_1') .. 'A' .. text('title_start_2'), 20 + (parallax * 1.8), 200)
+	drawimage(assets.logo, 35 + floor((parallax * 1.5) / 2) * 2, 35)
 
 	-- drawing the selections
 	local arrow_offset
@@ -181,6 +218,7 @@ function title:keypressed(button)
 				playsound(sfx_menu_bonk)
 			else
 				playsound(sfx_menu_move)
+				vars.hit_edge = false
 			end
 		elseif button == (platform == 'peedee' and 'down' or platform == 'love' and save.down) then
 			vars.selection = vars.selection + 1
@@ -190,6 +228,7 @@ function title:keypressed(button)
 				playsound(sfx_menu_bonk)
 			else
 				playsound(sfx_menu_move)
+				vars.hit_edge = false
 			end
 		elseif button == (platform == 'peedee' and 'b' or platform == 'love' and save.secondary) then
 			playsound(sfx_back)

@@ -84,7 +84,7 @@ function value(name)
 	if vars[name] ~= nil then
 		return vars[name].value
 	else
-		return 0
+		return nil
 	end
 end
 
