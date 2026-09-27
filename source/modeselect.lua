@@ -251,7 +251,7 @@ function modeselect:keypressed(button)
 			elseif sel == 'daily' then
 				if vars.dailyrunnable then
 					scenemanager:transitionscene(game, 'daily')
-					save.lastdaily = pd.getGMTTime()
+					save.lastdaily = getgmttime()
 					save.lastdaily.score = 0
 					save.lastdaily.sent = false
 				else

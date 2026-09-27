@@ -1,5 +1,5 @@
 -- Build target. 'peedee' or 'love'
-platform = 'peedee'
+platform = 'love'
 local fps = 30
 
 local pd
@@ -225,10 +225,6 @@ function commalize(amount)
     end
   	return formatted
 end
-
--- NOTE: screenshots for itch page
--- NOTE: add screenshot to website
--- NOTE: write alt text for screenshot on website
 
 -- TODO: catalog app feature
 -- TODO: catalog app billboard
