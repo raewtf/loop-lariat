@@ -471,6 +471,10 @@ function gettime()
 	return os.date('*t')
 end
 
+function getgmttime()
+	return os.date('!*t')
+end
+
 function getreduceflashing()
 	return (save.reduceflashing >= 1)
 end

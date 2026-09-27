@@ -5,6 +5,7 @@ local right
 local rad = math.rad
 local sin = math.sin
 local cos = math.cos
+local find = string.find
 local floor = math.floor
 
 if platform == 'peedee' then
@@ -21,6 +22,11 @@ if platform == 'peedee' then
 		function pd.gameWillPause()
 			local menu = pd.getSystemMenu()
 			menu:removeAllMenuItems()
+			if not transitioning then
+				menu:addMenuItem(text('slide_back'), function()
+					scenemanager:transitionscene(title, true, 'modeselect')
+				end)
+			end
 		end
 
 		self:initialize(args)
@@ -43,8 +49,6 @@ elseif platform == 'love' then
 	end
 end
 
--- TODO: only one daily play per day
-
 function modeselect:initialize(args)
 	assets = {
 		bg_1 = newimage('images/modeselect/bg_1'),
@@ -52,9 +56,17 @@ function modeselect:initialize(args)
 		bg_3 = newimage('images/modeselect/bg_3'),
 
 		chamber = newimagetable('images/modeselect/chambers', 210, 210, 20),
+
 		box = newnineslice('images/modeselect/box', 17, 17, 30, 30),
-		text_box = newimage(300, 95)
+		text_box = newimage(300, 95),
+
+		half = newimage('images/half'),
+		modal = newimage(300, 190),
 	}
+
+	pushcontext(assets.modal)
+		drawnineslice(assets.box, 0, 0, 300, 190)
+	popcontext()
 
 	vars = {
 		handler = '',
@@ -65,6 +77,7 @@ function modeselect:initialize(args)
 		chamber_target = 0,
 		slerp = 0,
 		slerp_target = 0,
+		modal_bonk_offset = 0,
 	}
 	afterdelay('inputdelay', transitioning and transitiontime or 0, function() vars.handler = 'modeselect' end)
 
@@ -120,8 +133,13 @@ function modeselect:update()
 		end
 	end
 
+	local time = getgmttime()
+	vars.dailyrunnable = not (save.lastdaily.year == time.year and save.lastdaily.month == time.month and save.lastdaily.day == time.day)
+
 	vars.chamber = vars.chamber + ((vars.chamber_target - vars.chamber) * 0.5)
 	vars.slerp = vars.slerp + ((vars.slerp_target - vars.slerp) * 0.5)
+
+	vars.modal_bonk_offset = vars.modal_bonk_offset - (vars.modal_bonk_offset * 0.5)
 end
 
 function modeselect:draw()
@@ -129,12 +147,24 @@ function modeselect:draw()
 	drawimage(assets.bg_2, floor(value('bg_2') / 2) * 2, 0)
 	drawimage(assets.bg_3, floor(value('bg_3') / 4) * 4, 0)
 
-	drawtext(root_beer_outline, text('modeselect_prompt'), 150, 35, center)
+	drawtext(root_beer_outline, text('modeselect_prompt'), 150, 25, center)
+	drawtext(root_beer_med_outline, text('modeselect_prompt_2'), 150, 55, center)
 
 	-- backing for current game mode highlight
 	setcolor(0, 0, 0, 1, 'black')
 	fillrect(0, 97, 400, 43)
 	setcolor(255, 255, 255, 1, 'black')
+
+	if vars.selections[vars.selection] == 'daily' and not vars.dailyrunnable then
+		local time = getgmttime()
+		if time.hour < 23 then
+			drawtext(root_beer_med_inverted, text('modeselect_refreshes_in') .. (24 - time.hour) .. text('modeselect_h'), 10, 111)
+		elseif time.minute < 59 then
+			drawtext(root_beer_med_inverted, text('modeselect_refreshes_in') .. (60 - time.minute) .. text('modeselect_m'), 10, 111)
+		else
+			drawtext(root_beer_med_inverted, text('modeselect_refreshes_in') .. (60 - time.second) .. text('modeselect_s'), 10, 111)
+		end
+	end
 
 	-- rotation logic for current game mode highlight
 	local slerp_offset = vars.slerp
@@ -149,12 +179,10 @@ function modeselect:draw()
 			sinc = sin(radc)
 			cosc = cos(radc)
 
-			drawtext(root_beer_outline, text('modeselect_' .. vars.selections[i]), 400 - (cosc * 115), 102 - (sinc * 30), right)
+			drawtext(root_beer_inverted, text('modeselect_' .. vars.selections[i]), 400 - (cosc * 115), 104 - (sinc * 20), right)
 		end
 		slerp_offset = slerp_offset - 360 / #vars.selections
 	end
-
-	-- NOTE: draw some reactive triangles to indicate scroll direction
 
 	-- pistol chamber that rotates
 	drawimagetable(assets.chamber, (floor(vars.chamber / 3) % 20) + 1, 290, 15)
@@ -162,7 +190,16 @@ function modeselect:draw()
 	-- game mode description
 	drawimage(assets.text_box, 10, 135)
 
-	-- NOTE: modal if selected 'arcade' or 'time', to determine length of time
+	if find(vars.handler, '_modal') then
+		drawimage(assets.half, 0, 0)
+		drawimage(assets.modal, 50, 25)
+
+		drawtext(root_beer_med, text('modeselect_time_prompt'), 200, 50, center)
+
+		for i = 1, #vars.modal_selections do
+			drawtext(vars.modal_selection == i and root_beer_outline or root_beer, text(vars.modal_selections[i]), 200, 100 + (30 * i) - (15 * #vars.modal_selections) + (vars.modal_selection == i and (-2 + vars.modal_bonk_offset) or 0), center)
+		end
+	end
 
 	drawontop()
 end
@@ -199,23 +236,83 @@ function modeselect:keypressed(button)
 			playsound(sfx_back)
 			scenemanager:transitionscene(title, true, 'modeselect')
 		elseif button == (platform == 'peedee' and 'a' or platform == 'love' and save.primary) then
-			playsound(sfx_select)
-			fademusic()
+			local moving = true
 			local sel = vars.selections[vars.selection]
 			if sel == 'arcade' then
-				scenemanager:transitionscene(game, 'arcade')
+				vars.modal_selections = {'1min', '5min', '10min'}
+				vars.modal_selection = 1
+				vars.handler = 'arcade_modal'
 			elseif sel == 'time' then
-				scenemanager:transitionscene(game, 'time')
+				vars.modal_selections = {'1min', '5min', '10min'}
+				vars.modal_selection = 1
+				vars.handler = 'time_modal'
 			elseif sel == 'marathon' then
 				scenemanager:transitionscene(game, 'marathon')
 			elseif sel == 'daily' then
-				scenemanager:transitionscene(game, 'daily')
+				if vars.dailyrunnable then
+					scenemanager:transitionscene(game, 'daily')
+					save.lastdaily = pd.getGMTTime()
+					save.lastdaily.score = 0
+					save.lastdaily.sent = false
+				else
+					playsound(sfx_menu_bonk)
+					moving = false
+				end
 			elseif sel == 'vs_2p' then
 				scenemanager:transitionscene(game, 'vs', '2p')
 			elseif sel == 'vs_com' then
 				scenemanager:transitionscene(game, 'vs', 'cpu')
 			elseif sel == 'chill' then
 				scenemanager:transitionscene(game, 'chill')
+			end
+			if moving then
+				playsound(sfx_select)
+				fademusic()
+			end
+		end
+	elseif find(vars.handler, '_modal') then
+		if button == (platform == 'peedee' and 'up' or platform == 'love' and save.up) then
+			vars.modal_selection = vars.modal_selection - 1
+			if vars.modal_selection < 1 then
+				vars.modal_selection = 1
+				vars.modal_bonk_offset = -5
+				playsound(sfx_menu_bonk)
+			else
+				playsound(sfx_menu_move)
+			end
+		elseif button == (platform == 'peedee' and 'down' or platform == 'love' and save.down) then
+			vars.modal_selection = vars.modal_selection + 1
+			if vars.modal_selection > #vars.modal_selections then
+				vars.modal_selection = #vars.modal_selections
+				vars.modal_bonk_offset = 5
+				playsound(sfx_menu_bonk)
+			else
+				playsound(sfx_menu_move)
+			end
+		elseif button == (platform == 'peedee' and 'b' or platform == 'love' and save.secondary) then
+			playsound(sfx_back)
+			vars.handler = 'modeselect'
+		elseif button == (platform == 'peedee' and 'a' or platform == 'love' and save.primary) then
+			playsound(sfx_select)
+			local sel = vars.modal_selections[vars.modal_selection]
+			if sel == '1min' then
+				if vars.handler == 'arcade_modal' then
+					scenemanager:transitionscene(game, 'arcade', 60000)
+				elseif vars.handler == 'time_modal' then
+					scenemanager:transitionscene(game, 'time', 60000)
+				end
+			elseif sel == '5min' then
+				if vars.handler == 'arcade_modal' then
+					scenemanager:transitionscene(game, 'arcade', 300000)
+				elseif vars.handler == 'time_modal' then
+					scenemanager:transitionscene(game, 'time', 300000)
+				end
+			elseif sel == '10min' then
+				if vars.handler == 'arcade_modal' then
+					scenemanager:transitionscene(game, 'arcade', 600000)
+				elseif vars.handler == 'time_modal' then
+					scenemanager:transitionscene(game, 'time', 600000)
+				end
 			end
 		end
 	end

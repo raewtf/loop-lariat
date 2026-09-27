@@ -19,6 +19,11 @@ if platform == 'peedee' then
 		function pd.gameWillPause()
 			local menu = pd.getSystemMenu()
 			menu:removeAllMenuItems()
+			if not transitioning then
+				menu:addMenuItem(text('slide_back'), function()
+					scenemanager:transitionscene(title, true, 'howtoplay')
+				end)
+			end
 		end
 
 		self:initialize(args)

@@ -333,6 +333,10 @@ function gettime()
 	return pd.getTime()
 end
 
+function getgmttime()
+	return pd.getGMTTime()
+end
+
 function getreduceflashing()
 	return (save.reduceflashing == 1 or (save.reduceflashing == 2 and pd.getReduceFlashing()))
 end

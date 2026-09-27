@@ -17,6 +17,11 @@ if platform == 'peedee' then
 		function pd.gameWillPause()
 			local menu = pd.getSystemMenu()
 			menu:removeAllMenuItems()
+			if not transitioning then
+				menu:addMenuItem(text('slide_back'), function()
+					scenemanager:transitionscene(title, true, 'options')
+				end)
+			end
 		end
 
 		self:initialize(args)
@@ -42,11 +47,18 @@ end
 function options:initialize(args)
 	assets = {
 		bg = newimage('images/options/bg'),
+		half = newimage('images/half'),
+		box = newnineslice('images/modeselect/box', 17, 17, 30, 30),
+		modal = newimage(300, 190),
 	}
+
+	pushcontext(assets.modal)
+		drawnineslice(assets.box, 0, 0, 300, 190)
+	popcontext()
 
 	vars = {
 		handler = '',
-		selections = {'music', 'sfx', 'reduceflashing'},
+		selections = {'music', 'sfx', 'lang', 'reduceflashing'},
 		selection = 1,
 		bonk_offset = 0,
 		hit_edge = false,
@@ -114,7 +126,14 @@ function options:draw()
 		drawtext(vars.selection == i and root_beer_med_outline or root_beer_med, text('options_' .. vars.selections[i]) .. (vars.selections[i] ~= 'remap' and text('options_' .. tostring(save[vars.selections[i]])) or ''), 278, 108 + (20 * i) - (#vars.selections * 10) + (vars.selection == i and (-2 + vars.bonk_offset) or 0), center)
 	end
 
-	-- NOTE: modal for keyboard remapping
+	if vars.handler == 'remap' then
+		drawimage(assets.half, 0, 0)
+		drawimage(assets.modal, 50, 25)
+
+		drawtext(root_beer_med, text('options_remap_prompt'), 200, 50, center)
+		drawtext(root_beer_med_outline, text('options_remap_' .. vars.remap_step), 200, 115, center)
+		drawtext(root_beer_med, text('options_remap_cancel'), 200, 170, center)
+	end
 
 	drawontop()
 end
@@ -172,6 +191,12 @@ function options:keypressed(button)
 			elseif sel == 'sfx' then
 				save.sfx = not save.sfx
 				playsound(sfx_select)
+			elseif sel == 'lang' then
+				if save.lang == 'en' then
+					save.lang = 'fr'
+				elseif save.lang == 'fr' then
+					save.lang = 'en'
+				end
 			elseif sel == 'reduceflashing' then
 				save.reduceflashing = save.reduceflashing - 1
 				if save.reduceflashing < 0 then
@@ -203,6 +228,12 @@ function options:keypressed(button)
 			elseif sel == 'sfx' then
 				save.sfx = not save.sfx
 				playsound(sfx_select)
+			elseif sel == 'lang' then
+				if save.lang == 'en' then
+					save.lang = 'fr'
+				elseif save.lang == 'fr' then
+					save.lang = 'en'
+				end
 			elseif sel == 'reduceflashing' then
 				save.reduceflashing = save.reduceflashing + 1
 				if save.reduceflashing > (platform == 'peedee' and 2 or 1) then
@@ -237,6 +268,12 @@ function options:keypressed(button)
 			elseif sel == 'sfx' then
 				save.sfx = not save.sfx
 				playsound(sfx_select)
+			elseif sel == 'lang' then
+				if save.lang == 'en' then
+					save.lang = 'fr'
+				elseif save.lang == 'fr' then
+					save.lang = 'en'
+				end
 			elseif sel == 'reduceflashing' then
 				save.reduceflashing = save.reduceflashing + 1
 				if save.reduceflashing > (platform == 'peedee' and 2 or 1) then
@@ -249,6 +286,7 @@ function options:keypressed(button)
 				playsound(sfx_select)
 			elseif sel == 'remap' then
 				vars.remap_step = 1
+				self:holdbuttons()
 				vars.handler = 'remap'
 				playsound(sfx_select)
 			elseif sel == 'clean_scaling' then

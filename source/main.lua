@@ -1,5 +1,5 @@
 -- Build target. 'peedee' or 'love'
-platform = 'love'
+platform = 'peedee'
 local fps = 30
 
 local pd
@@ -139,6 +139,12 @@ function savecheck()
 	if save.music == nil then save.music = true end
 	if save.sfx == nil then save.sfx = true end
 
+	if save.lastdaily == nil then save.lastdaily = {} end
+	save.lastdaily.year = save.lastdaily.year or 0
+	save.lastdaily.month = save.lastdaily.month or 0
+	save.lastdaily.day = save.lastdaily.day or 0
+	save.lastdaily.score = save.lastdaily.score or 0
+
 	save.arcade_best = save.arcade_best or 0
 	save.time_best = save.time_best or 0
 	save.marathon_best = save.marathon_best or 0
@@ -220,8 +226,9 @@ function commalize(amount)
   	return formatted
 end
 
--- NOTE: write manual
 -- NOTE: screenshots for itch page
+-- NOTE: add screenshot to website
+-- NOTE: write alt text for screenshot on website
 
 -- TODO: catalog app feature
 -- TODO: catalog app billboard
@@ -243,6 +250,12 @@ if platform == 'peedee' then
 	scenemanager:switchscene(title)
 
 	function pd.update()
+		-- resetting daily score if need be
+		local time = getgmttime()
+		if (save.lastdaily.score ~= 0) and not (save.lastdaily.year == time.year and save.lastdaily.month == time.month and save.lastdaily.day == time.day) then
+			 save.lastdaily.score = 0
+		end
+
 		-- Catch-all stuff ...
 		gfx.sprite.update()
 		pd.timer.updateTimers()
@@ -265,7 +278,7 @@ elseif platform == 'love' then
 		save.gamepad = gamepad
 		gamepad = false
 		if key == 'escape' and vars ~= nil then
-			if vars.player_1 ~= nil then -- playing the game
+			if vars.player_1 ~= nil and vars.player_1.handler ~= 'gameover' and vars.player_1.handler ~= 'results' then -- playing the game
 				if vars.paused then
 					game:unpause()
 				else
@@ -406,7 +419,7 @@ elseif platform == 'love' then
 
 	function love.joystickremoved()
 		-- pause game if it's running and a controller is disconnected
-		if vars ~= nil and vars.player_1 ~= nil and not vars.paused then game:pause() end
+		if vars ~= nil and vars.player_1 ~= nil and vars.player_1.handler ~= 'gameover' and vars.player_1.handler ~= 'results' and not vars.paused then game:pause() end
 	end
 
 	function rumble(left, right, duration)
@@ -421,7 +434,7 @@ elseif platform == 'love' then
 		else
 			love.mouse.setVisible(true)
 			-- pause game if it's running and window's defocused
-			if vars ~= nil and vars.player_1 ~= nil and not vars.paused then game:pause() end
+			if vars ~= nil and vars.player_1 ~= nil and vars.player_1.handler ~= 'gameover' and vars.player_1.handler ~= 'results' and not vars.paused then game:pause() end
 		end
 	end
 
@@ -463,6 +476,12 @@ elseif platform == 'love' then
 
 	function love.update(dt)
 		next_time = next_time + min_dt
+
+		-- resetting daily score if need be
+		local time = getgmttime()
+		if (save.lastdaily.score ~= 0) and not (save.lastdaily.year == time.year and save.lastdaily.month == time.month and save.lastdaily.day == time.day) then
+			 save.lastdaily.score = 0
+		end
 
 		timer.update(dt, transition)
 

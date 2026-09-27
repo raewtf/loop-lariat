@@ -24,6 +24,11 @@ if platform == 'peedee' then
 		function pd.gameWillPause()
 			local menu = pd.getSystemMenu()
 			menu:removeAllMenuItems()
+			if not transitioning then
+				menu:addMenuItem(text('slide_quit'), function()
+					scenemanager:transitionscene(modeselect)
+				end)
+			end
 		end
 
 		self:initialize(args)
@@ -105,8 +110,16 @@ function game:initialize(args)
 		tumble = newimage('images/game/blocks/tumble'),
 
 		countdown = newimagetable('images/game/countdown', 400, 240, 60),
+
+		-- pause assets
 		half = newimage('images/half'),
+		box = newnineslice('images/modeselect/box', 17, 17, 30, 30),
+		modal = newimage(300, 190),
 	}
+
+	pushcontext(assets.modal)
+		drawnineslice(assets.box, 0, 0, 300, 190)
+	popcontext()
 
 	vars = {
 		mode = args[1] or 'time', -- 'arcade', 'time', 'marathon', 'daily', 'vs', or 'chill'
@@ -114,6 +127,9 @@ function game:initialize(args)
 		arg2 = args[3], -- if 'vs', array with number of wins for each player.
 		garbage_threshold = 3,
 		paused = false,
+		pause_bonk_offset = 0,
+		results_bonk_offset = 0,
+		time_up = false,
 	}
 
 	loopingtimer('tnt_prime_1', 150, 1, 2.99, 'linear')
@@ -121,12 +137,7 @@ function game:initialize(args)
 	loopingtimer('anim_overlay', 2000, 1, 4.99, 'linear')
 
 	if vars.mode == 'daily' then
-		local time
-		if platform == 'peedee' then
-			time = pd.getGMTTime()
-		elseif platform == 'love' then
-			time = os.date('*t')
-		end
+		local time = getgmttime()
 		vars.seed = time.year .. format('%02d', time.month) .. format('%02d', time.day)
 		setRandomSeed(vars.seed)
 	else
@@ -257,7 +268,9 @@ function game:initialize(args)
 				newmusic('audio/music/countdown')
 				newtimer('countdown', 4000, 1, 60, 'linear', function()
 					if vars.mode == 'arcade' or vars.mode == 'time' then
-						newtimer('time', arg1 or 60000, 60000, 0, 'linear', function()
+						local arg1 = vars.arg1
+						newtimer('time', arg1 ~= nil and arg1 or 60000, arg1 ~= nil and arg1 or 60000, 0, 'linear', function()
+							vars.time_up = true
 							self:over(1)
 						end)
 					end
@@ -359,6 +372,9 @@ function game:update()
 			end
 		end
 	end
+
+	vars.pause_bonk_offset = vars.pause_bonk_offset - (vars.pause_bonk_offset * 0.5)
+	vars.results_bonk_offset = vars.results_bonk_offset - (vars.results_bonk_offset * 0.5)
 end
 
 function game:draw()
@@ -535,9 +551,46 @@ function game:draw()
 		drawimagetable(assets.countdown, floor(value('countdown')), 0, 0)
 	end
 
-	-- NOTE: draw pause screen if vars.paused is true
 	if vars.paused then
 		drawimage(assets.half, 0, 0)
+		drawimage(assets.modal, 50, 25)
+
+		drawtext(root_beer_med, text('paused'), 200, 50, center)
+
+		for i = 1, #vars.pause_selections do
+			drawtext(vars.pause_selection == i and root_beer_outline or root_beer, text(vars.pause_selections[i]), 200, 85 + (30 * i) - (15 * #vars.pause_selections) + (vars.pause_selection == i and (-2 + vars.pause_bonk_offset) or 0), center)
+		end
+
+		drawtext(root_beer_small, text('quit_warning'), 200, 160, center)
+	end
+
+	if vars.player_1.handler == 'results' then
+		drawimage(assets.half, 0, 0)
+		drawimage(assets.modal, 50, 25)
+
+		drawtext(root_beer, vars.time_up and text('timeup') or text('gameover'), 200, 50, center)
+
+		drawtext(root_beer_med, text('your_score'), 80, 95)
+		drawtext(root_beer, commalize(vars.player_1.score), 322, 86, right)
+
+		if vars.new_best then
+			drawtext(root_beer_med, text('new_best'), 80, 114)
+		else
+			drawtext(root_beer_med, text('best_score') .. commalize(save[vars.mode .. '_best']), 80, 114)
+		end
+
+		drawtext(root_beer_med, text('total_lassos') .. commalize(vars.player_1.lassos), 320, 114, right)
+
+		for i = 1, #vars.results_selections do
+			drawtext(vars.results_selection == i and root_beer_med_outline or root_beer_med, text(vars.results_selections[i]), 200, 150 + (20 * i) - (10 * #vars.results_selections) + (vars.results_selection == i and (-2 + vars.results_bonk_offset) or 0), center)
+		end
+
+		-- TODO: VS end screen stuff
+		-- if it's VS, add a point to the player who didn't lose
+		-- if it's VS, show the player who won the match
+		-- if it's VS and there's no 3-set winner, just play again
+		-- if it's VS and there *is* a 3-set winner, just go back
+		-- if there's a 3-set winner, show them more prominently than just round winner, btw
 	end
 
 	drawontop()
@@ -547,7 +600,6 @@ end
 function game:pause()
 	if not vars.paused then
 		setmusicvolume(0.5)
-		vars.paused = true
 		vars.player_1.oldhandler = vars.player_1.handler
 		vars.player_1.handler = 'paused'
 		if vars.mode == 'vs' then
@@ -556,6 +608,7 @@ function game:pause()
 		end
 		vars.pause_selections = {'resume', 'quit'}
 		vars.pause_selection = 1
+		vars.paused = true
 	end
 end
 
@@ -792,7 +845,8 @@ function game:lasso_check(player, x, y, skip_dir, skip_final, skip_match)
 	end
 
 	-- if the block is a lasso, and it's not already accounted for, then...let's do some stuff to it!
-	if tile.block ~= nil and find(tile.block, 'lasso') and not in_match then
+	if tile.block ~= nil and find(tile.block, 'lasso') then
+		tile.block = tile.original_block
 		table.insert(p.lassos_in_match, {x, y})
 		tile.checked = true
 
@@ -911,6 +965,7 @@ function game:lasso_match(player)
 		local new_time = time + (20000 * exp(-0.105 * p.lassos))
 		resettimer('time', new_time, new_time, 0, 'linear', function()
 			self:over(1)
+			vars.time_up = true
 		end)
 	end
 
@@ -1005,23 +1060,22 @@ function game:over(player)
 	p.handler = 'gameover'
 	rumble(1, 1, 1)
 
+	if save[vars.mode .. '_best'] ~= nil and p.score > save[vars.mode .. '_best'] then
+		vars.new_best = true
+		save[vars.mode .. '_best'] = p.score
+	end
+
 	if vars.time ~= nil then
 		local time = value('time')
-		resettimer('time', 0, time, time)
+		resettimer('time', 0, time, time, 'linear', function()
+		end)
 	end
 
 	resettimer('anim_board_shake_' .. player, 1000, 5, 0, 'linear', function()
 		newmusic('audio/music/chill', true)
-		-- NOTE: finish game over sequence
-			-- move to results view after short delay
-			-- buttons for play again and go back
-
-			-- TODO: VS end screen stuff
-			-- if it's VS, add a point to the player who didn't lose
-			-- if it's VS, show the player who won the match
-			-- if it's VS and there's no 3-set winner, just play again
-			-- if it's VS and there *is* a 3-set winner, just go back
-			-- if there's a 3-set winner, show them more prominently than just round winner, btw
+		vars.results_selections = {'new_game', 'go_back'}
+		vars.results_selection = 1
+		p.handler = 'results'
 	end)
 
 end
@@ -1078,7 +1132,67 @@ function game:keypressed(button)
 			self:place_block(1)
 		end
 	elseif vars.player_1.handler == 'paused' then
-
+		if button == (platform == 'peedee' and 'up' or platform == 'love' and save.up) then
+			vars.pause_selection = vars.pause_selection - 1
+			if vars.pause_selection < 1 then
+				vars.pause_selection = 1
+				vars.pause_bonk_offset = -5
+				playsound(sfx_menu_bonk)
+			else
+				playsound(sfx_menu_move)
+			end
+		elseif button == (platform == 'peedee' and 'down' or platform == 'love' and save.down) then
+			vars.pause_selection = vars.pause_selection + 1
+			if vars.pause_selection > #vars.pause_selections then
+				vars.pause_selection = #vars.pause_selections
+				vars.pause_bonk_offset = 5
+				playsound(sfx_menu_bonk)
+			else
+				playsound(sfx_menu_move)
+			end
+		elseif button == (platform == 'peedee' and 'b' or platform == 'love' and save.secondary) then
+			playsound(sfx_back)
+			self:unpause()
+		elseif button == (platform == 'peedee' and 'a' or platform == 'love' and save.primary) then
+			playsound(sfx_select)
+			local sel = vars.pause_selections[vars.pause_selection]
+			if sel == 'resume' then
+				self:unpause()
+			elseif sel == 'quit' then
+				scenemanager:transitionscene(modeselect)
+			end
+		end
+	elseif vars.player_1.handler == 'results' then
+		if button == (platform == 'peedee' and 'up' or platform == 'love' and save.up) then
+			vars.results_selection = vars.results_selection - 1
+			if vars.results_selection < 1 then
+				vars.results_selection = 1
+				vars.results_bonk_offset = -5
+				playsound(sfx_menu_bonk)
+			else
+				playsound(sfx_menu_move)
+			end
+		elseif button == (platform == 'peedee' and 'down' or platform == 'love' and save.down) then
+			vars.results_selection = vars.results_selection + 1
+			if vars.results_selection > #vars.results_selections then
+				vars.results_selection = #vars.results_selections
+				vars.results_bonk_offset = 5
+				playsound(sfx_menu_bonk)
+			else
+				playsound(sfx_menu_move)
+			end
+		elseif button == (platform == 'peedee' and 'b' or platform == 'love' and save.secondary) then
+			playsound(sfx_back)
+			scenemanager:transitionscene(modeselect)
+		elseif button == (platform == 'peedee' and 'a' or platform == 'love' and save.primary) then
+			playsound(sfx_select)
+			local sel = vars.results_selections[vars.results_selection]
+			if sel == 'new_game' then
+				scenemanager:transitionscene(game, vars.mode, vars.arg1, vars.arg2)
+			elseif sel == 'go_back' then
+				scenemanager:transitionscene(modeselect)
+			end
+		end
 	end
 end
 

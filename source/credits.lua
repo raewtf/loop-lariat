@@ -17,6 +17,11 @@ if platform == 'peedee' then
 		function pd.gameWillPause()
 			local menu = pd.getSystemMenu()
 			menu:removeAllMenuItems()
+			if not transitioning then
+				menu:addMenuItem(text('slide_back'), function()
+					scenemanager:transitionscene(title, true, 'credits')
+				end)
+			end
 		end
 
 		self:initialize(args)
@@ -62,16 +67,19 @@ function credits:draw()
 	drawtext(root_beer, text('credits_name_1'), 113, 166, center)
 	drawtext(root_beer_med, text('credits_desc_1'), 116, 193, center)
 
-	drawtext(root_beer_med, text('accomplices'), 215, 40)
+	drawtext(root_beer_med, text('accomplices'), 215, 30)
 
-	drawtext(root_beer, text('credits_name_2'), 210, 60)
-	drawtext(root_beer_med, text('credits_desc_2'), 375, 85, right)
+	drawtext(root_beer_med, text('credits_name_2'), 210, 55)
+	drawtext(root_beer_med, text('credits_desc_2'), 375, 70, right)
 
-	drawtext(root_beer, text('credits_name_3'), 207, 108)
-	drawtext(root_beer_med, text('credits_desc_3'), 372, 133, right)
+	drawtext(root_beer_med, text('credits_name_3'), 210, 90)
+	drawtext(root_beer_med, text('credits_desc_3'), 371, 105, right)
 
-	drawtext(root_beer_small, text('credits_name_4'), 210, 160)
-	drawtext(root_beer_med, text('credits_desc_4'), 365, 208, right)
+	drawtext(root_beer_med, text('credits_name_4'), 210, 125)
+	drawtext(root_beer_med, text('credits_desc_4'), 365, 140, right)
+
+	drawtext(root_beer_small, text('credits_name_5'), 210, 165)
+	drawtext(root_beer_med, text('credits_desc_5'), 365, 213, right)
 
 	drawontop()
 end
