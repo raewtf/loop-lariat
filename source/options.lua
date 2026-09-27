@@ -120,10 +120,11 @@ end
 function options:draw()
 	drawimage(assets.bg, 0, 0)
 
+	drawtext(root_beer_small, 'v' .. version, 5, 223)
 	drawtext(root_beer_outline, text('options'), 111, 26, center)
 
 	for i = 1, #vars.selections do
-		drawtext(vars.selection == i and root_beer_med_outline or root_beer_med, text('options_' .. vars.selections[i]) .. (vars.selections[i] ~= 'remap' and text('options_' .. tostring(save[vars.selections[i]])) or ''), 278, 108 + (20 * i) - (#vars.selections * 10) + (vars.selection == i and (-2 + vars.bonk_offset) or 0), center)
+		drawtext(vars.selection == i and root_beer_med_outline or root_beer_med, text('options_' .. vars.selections[i]) .. (vars.selections[i] == 'clean_scaling' and text('options_clean_scaling_' .. tostring(save[vars.selections[i]])) or (vars.selections[i] ~= 'remap' and text('options_' .. tostring(save[vars.selections[i]])) or '')), 278, 108 + (20 * i) - (#vars.selections * 10) + (vars.selection == i and (-2 + vars.bonk_offset) or 0), center)
 	end
 
 	if vars.handler == 'remap' then
@@ -197,6 +198,7 @@ function options:keypressed(button)
 				elseif save.lang == 'fr' then
 					save.lang = 'en'
 				end
+				playsound(sfx_select)
 			elseif sel == 'reduceflashing' then
 				save.reduceflashing = save.reduceflashing - 1
 				if save.reduceflashing < 0 then
@@ -234,6 +236,7 @@ function options:keypressed(button)
 				elseif save.lang == 'fr' then
 					save.lang = 'en'
 				end
+				playsound(sfx_select)
 			elseif sel == 'reduceflashing' then
 				save.reduceflashing = save.reduceflashing + 1
 				if save.reduceflashing > (platform == 'peedee' and 2 or 1) then
@@ -274,6 +277,7 @@ function options:keypressed(button)
 				elseif save.lang == 'fr' then
 					save.lang = 'en'
 				end
+				playsound(sfx_select)
 			elseif sel == 'reduceflashing' then
 				save.reduceflashing = save.reduceflashing + 1
 				if save.reduceflashing > (platform == 'peedee' and 2 or 1) then

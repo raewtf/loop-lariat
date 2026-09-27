@@ -46,10 +46,12 @@ langs = {
 		["p1_score"] = "P1 Score",
 		["p2_score"] = "P2 Score",
 		["com_score"] = "COM Score",
+		["wins"] = "Wins",
 
 		["best"] = "Best",
 		["timer"] = "Timer",
 		["lassos"] = "Lassos",
+		["seed"] = "Seed",
 
 		["next"] = "Next",
 		["now"] = "Now",
@@ -95,7 +97,7 @@ langs = {
 		["options_lang"] = "Language: ",
 		["options_reduceflashing"] = "Reduce Flash: ",
 		["options_rumble"] = "Rumble: ",
-		["options_clean_scaling"] = "Integer Scale: ",
+		["options_clean_scaling"] = "Scaling: ",
 		["options_remap"] = "Remap Keyboard",
 
 		["options_false"] = "OFF",
@@ -104,6 +106,9 @@ langs = {
 		["options_0"] = "OFF",
 		["options_1"] = "ON",
 		["options_2"] = "AUTO",
+
+		["options_clean_scaling_false"] = "Wonky",
+		["options_clean_scaling_true"] = "Clean",
 
 		["options_en"] = "English",
 		["options_fr"] = "French",
@@ -139,6 +144,153 @@ langs = {
 		-- playdate slide menu
 		["slide_quit"] = "end game",
 		["slide_back"] = "go back",
+	},
+
+	fr = {
+		-- title screen
+		["title_modeselect"] = "Raflez-les !",
+		["title_howtoplay"] = "Instructions",
+		["title_options"] = "Options",
+		["title_credits"] = "Crédits",
+
+
+
+		-- mode select
+		["modeselect_prompt"] = "Choisissez vot' mode !",
+		["modeselect_prompt_2"] = "(Appuyez sur haut/bas !)",
+
+		["modeselect_arcade"] = "Arcade",
+		["modeselect_time"] = "Contre-la-montre",
+		["modeselect_marathon"] = "Marathon",
+		["modeselect_daily"] = "Partie du jour",
+		["modeselect_vs_2p"] = "Versus",
+		["modeselect_vs_com"] = "Versus ORDI",
+		["modeselect_chill"] = "Entraînement",
+
+		["modeselect_arcade_desc"] = "Jouez du lasso autant que\npossible pour empêcher le\nminuteur d'atteindre zéro !",
+		["modeselect_time_desc"] = "Combien de points vous pouvez\nrassembler dans le temps\nimparti ?",
+		["modeselect_marathon_desc"] = "Des hors-la-loi à n'en plus\nfinir. Jouez jusqu'à ce\nque le plateau soit rempli !",
+		["modeselect_daily_desc"] = "Une nouvelle partie chaque\njour ! Les blocs sont les\nmêmes pour tout le monde.",
+		["modeselect_vs_com_desc"] = "Faites face à l'ordinateur !\nAttention aux virevoltants,\nils encombrent le plateau !",
+		["modeselect_vs_2p_desc"] = "Affrontez un ami ! Ou bien...\nun ennemi ? (Requiert une\ndeuxième manette.)",
+		["modeselect_chill_desc"] = "Jouez à votre aise, pour\naussi longtemps que\nvous voulez, sans game overs.",
+
+		["modeselect_refreshes_in"] = "(",
+		["modeselect_h"] = "h)",
+		["modeselect_m"] = "m)",
+		["modeselect_s"] = "s)",
+
+		["modeselect_time_prompt"] = "Quelle limite de temps ?",
+
+		["1min"] = "1 minute",
+		["5min"] = "5 minutes",
+		["10min"] = "10 minutes",
+
+
+
+		-- in-game
+		["score"] = "Score",
+		["p1_score"] = "Score J1",
+		["p2_score"] = "Score J2",
+		["com_score"] = "Score ORDI",
+		["wins"] = "Victoires",
+
+		["best"] = "Meilleur",
+		["timer"] = "Temps",
+		["lassos"] = "Lassos",
+		["seed"] = "Graine",
+
+		["next"] = "Suivant",
+		["now"] = "Actuel",
+		["hold"] = "Réserve",
+
+		["paused"] = "Tenez vos chevaux !",
+		["resume"] = "Reprendre",
+		["quit"] = "Abandonner",
+		["quit_warning"] = "(Si vous abandonnez, votre\nprogression sera perdue !)",
+
+		["gameover"] = "Terminé, partenaire !",
+		["timeup"] = "Temps écoulé, cowboy !",
+		["your_score"] = "Vot' score : ",
+		["best_score"] = "Record : ",
+		["new_best"] = "(Nouveau record !)",
+		["total_lassos"] = "Lassos : ",
+		["new_game"] = "Recommencer",
+		["go_back"] = "Retour",
+
+
+
+		-- how to play
+		["howtoplay_1"] = "\nLes affreux bandits\ndu gang des Meeple\nterrorisent la ville !\nUtilisez vos lassos\npour arrêter ces\nfripouilles et les\nenvoyer au bagne !",
+		["howtoplay_2"] = "\nSur le plateau,\nvous trouverez\nquatre sortes de\nblocs différents.\nChacune d'elles\na ses propres\ncapacités !",
+		["howtoplay_3"] = "Les lassos s'attachent\nensemble. En formant\nune boucle, vous\nattraperez tous les blocs\nà l'intérieur, sauf les\nautres lassos. C'est comme\nça qu'on arrête ces\nvauriens de Meeple !",
+		["howtoplay_4"] = "La dynamite détruit\nle bloc sur lequel\nelle est posée.\nUtilisez-la pour nettoyer\nle plateau, y compris les bouts\nde lasso en trop.\nMais attention :\nsi vous faites sauter\nun bandit, il ne\nvaudra plus rien !",
+		["howtoplay_5"] = "Des virevoltants\npeuvent apparaître\nde temps en temps. Ils\nencombrent l'écran et\nbloquent vos lassos.\nUn peu de dynamite\nsera utile pour\ns'en débarrasser !",
+		["howtoplay_6"] = "\nPour plus\nd'assistance,\nconsultez le\nmode d'emploi\nélectronique\nen scannant\nce code.",
+
+		["block_label_lasso"] = "Lasso",
+		["block_label_outlaw"] = "Bandit",
+		["block_label_tnt"] = "Dynamite",
+		["block_label_tumble"] = "Virevoltant",
+
+
+
+		-- options
+		["options"] = "Options",
+
+		["options_music"] = "Musique : ",
+		["options_sfx"] = "Sons : ",
+		["options_lang"] = "Langue: ",
+		["options_reduceflashing"] = "Animations : ",
+		["options_rumble"] = "Vibrations : ",
+		["options_clean_scaling"] = "Échelle : ",
+		["options_remap"] = "Config. touches",
+
+		["options_false"] = "NON",
+		["options_true"] = "OUI",
+
+		-- these are reversed because the context in which they're being presented is swapped. SORRY!
+		["options_0"] = "OUI",
+		["options_1"] = "NON",
+		["options_2"] = "AUTO",
+
+		["options_clean_scaling_false"] = "Auto.",
+		["options_clean_scaling_true"] = "Entière",
+
+		["options_en"] = "English",
+		["options_fr"] = "Français",
+
+		["options_remap_prompt"] = "Appuyez sur la\ntouche de l'action :",
+		["options_remap_1"] = "Aller vers le haut",
+		["options_remap_2"] = "Aller vers le bas",
+		["options_remap_3"] = "Aller à gauche",
+		["options_remap_4"] = "Aller à droite",
+		["options_remap_5"] = "Confirmer / placer",
+		["options_remap_6"] = "Retour / réserve",
+		["options_remap_cancel"] = "(Échap : annuler.)",
+
+
+
+		-- credits
+		["credits_name_1"] = "Rae",
+		["credits_desc_1"] = "Graphismes, code,\nmusique, et sons",
+
+		["accomplices"] = "Complices :",
+
+		["credits_name_2"] = "Voxy",
+		["credits_desc_2"] = "Localisation FR",
+		["credits_name_3"] = "Font End Dev",
+		["credits_desc_3"] = "Cette police",
+		["credits_name_4"] = "Eli Piilonen",
+		["credits_desc_4"] = "Algo. d'aléatoire",
+		["credits_name_5"] = "airstruck, Matthias\nRichter, Yuichi Tateno,\nEmmanuel Oga, rxi",
+		["credits_desc_5"] = "Librairies LÖVE2D",
+
+
+
+		-- playdate slide menu
+		["slide_quit"] = "terminer",
+		["slide_back"] = "retour",
 	}
 }
 

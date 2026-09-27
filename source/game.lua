@@ -24,7 +24,7 @@ if platform == 'peedee' then
 		function pd.gameWillPause()
 			local menu = pd.getSystemMenu()
 			menu:removeAllMenuItems()
-			if not transitioning then
+			if not transitioning and vars.player_1.handler ~= 'waiting' and vars.player_1.handler ~= 'gameover' and vars.player_1.handler ~= 'results' then
 				menu:addMenuItem(text('slide_quit'), function()
 					scenemanager:transitionscene(modeselect)
 				end)
@@ -149,7 +149,7 @@ function game:initialize(args)
 		vars['player_' .. i] = {}
 		local p = vars['player_' .. i]
 
-		p.handler = 'countdown' -- play handler
+		p.handler = 'waiting' -- play handler
 		p.score = 0 -- score
 		p.lassos = 0 -- lassos this round
 		-- blocks being juggled
@@ -261,8 +261,9 @@ function game:initialize(args)
 		if vars.mode == 'vs' then self:place_outlaws(2) end
 
 		afterdelay('countdown_delay', 1000, function()
+			-- TODO: change P2's handler if mode is VS
 			if vars.mode == 'chill' then
-				vars.player_1.handler = 'playing'
+				if vars.player_1.handler == 'waiting' then vars.player_1.handler = 'playing' end
 				newmusic('audio/music/chill', true)
 			else
 				newmusic('audio/music/countdown')
@@ -275,7 +276,7 @@ function game:initialize(args)
 						end)
 					end
 
-					vars.player_1.handler = 'playing'
+					if vars.player_1.handler == 'waiting' then vars.player_1.handler = 'playing' end
 					afterdelay('start_music', 500, function()
 						newmusic('audio/music/game', true)
 					end)
@@ -350,7 +351,7 @@ function game:update()
 			if tiles_filled == tiles and (p.blocks.current ~= 'tnt' and p.blocks.held ~= 'tnt') then
 				if vars.mode == 'chill' then
 					-- in chill mode, there's no game overs. just clear the board and let them try again
-					p.handler = 'clearing'
+					if p.handler == 'playing' then p.handler = 'clearing' end
 					afterdelay('clear_board', 500, function()
 						for n = 1, #p.board do
 							for j = 1, #p.board[1] do
@@ -389,11 +390,15 @@ function game:draw()
 		drawimage(assets.ui, 0, 0)
 
 		-- score/time displays
-		drawtext(root_beer_med_outline, 'P1 Score', 163, 51)
+		drawtext(root_beer_med_outline, text('p1_score'), 163, 51)
 		drawtext(root_beer_outline, commalize(vars.player_1.score), 163, 62)
-		drawtext(root_beer_med_outline, 'P2 Score', 237, 99, right)
+		if vars.arg1 == 'p2' then
+			drawtext(root_beer_med_outline, text('p2_score'), 237, 99, right)
+		elseif vars.arg1 == 'cpu' then
+			drawtext(root_beer_med_outline, text('com_score'), 237, 99, right)
+		end
 		drawtext(root_beer_outline, commalize(vars.player_2.score), 237, 110, right)
-		drawtext(root_beer_med_outline, 'Wins', 200, 147, center)
+		drawtext(root_beer_med_outline, text('wins'), 200, 147, center)
 		-- TODO: win sprites
 		-- empty and full. best 2 of 3, winning spot in the middle
 		-- 158 Y
@@ -401,63 +406,63 @@ function game:draw()
 		-- P1's blocks
 		local p = vars.player_1
 
-		drawtext(root_beer_med_outline, 'Next', 52, 23, right)
+		drawtext(root_beer_med_outline, text('next'), 52, 23, right)
 		drawimage(assets[p.blocks.next], 25, 40)
 
-		drawtext(root_beer_med_outline, 'Now', 56, 23)
+		drawtext(root_beer_med_outline, text('now'), 56, 23)
 		drawimage(assets[p.blocks.current], 59 + p.blocks.current_x_offset, 40 + p.blocks.current_y_offset)
 
-		drawtext(root_beer_med_outline, 'Hold', 131, 23, center)
+		drawtext(root_beer_med_outline, text('hold'), 131, 23, center)
 		if assets[p.blocks.hold] ~= nil then drawimage(assets[p.blocks.hold], 119 + p.blocks.hold_x_offset, 40 + p.blocks.hold_y_offset) end
 
 		-- P2's blocks
 		local p = vars.player_2
 
-		drawtext(root_beer_med_outline, 'Next', 284, 23, right)
+		drawtext(root_beer_med_outline, text('next'), 284, 23, right)
 		drawimage(assets[p.blocks.next], 257, 40)
 
-		drawtext(root_beer_med_outline, 'Now', 288, 23)
+		drawtext(root_beer_med_outline, text('now'), 288, 23)
 		drawimage(assets[p.blocks.current], 291 + p.blocks.current_x_offset, 40 + p.blocks.current_y_offset)
 
-		drawtext(root_beer_med_outline, 'Hold', 363, 23, center)
+		drawtext(root_beer_med_outline, text('hold'), 363, 23, center)
 		if assets[p.blocks.hold] ~= nil then drawimage(assets[p.blocks.hold], 351 + p.blocks.hold_x_offset, 40 + p.blocks.hold_y_offset) end
 	else
 		local p = vars.player_1
 		drawimage(assets.ui, 0, 0)
 
 		-- score/time display
-		drawtext(root_beer_med_outline, 'Score', 272, 51)
+		drawtext(root_beer_med_outline, text('score'), 272, 51)
 		drawtext(root_beer_outline, commalize(p.score), 272, 62)
 
 		if vars.mode == 'daily' then
-			drawtext(root_beer_med_outline, 'Seed', 272, 99)
+			drawtext(root_beer_med_outline, text('seed'), 272, 99)
 			drawtext(root_beer_med_outline, vars.seed, 272, 114)
 		elseif vars.mode == 'chill' then
-			drawtext(root_beer_med_outline, 'Lassos', 272, 99)
+			drawtext(root_beer_med_outline, text('lassos'), 272, 99)
 			drawtext(root_beer_outline, commalize(p.lassos), 272, 110)
 		else
-			drawtext(root_beer_med_outline, 'Best', 272, 99)
+			drawtext(root_beer_med_outline, text('best'), 272, 99)
 			drawtext(root_beer_outline, commalize(max(p.score, save[vars.mode .. '_best'])), 272, 110)
 		end
 
 		if vars.mode == 'arcade' or vars.mode == 'time' then
-			drawtext(root_beer_med_outline, 'Timer', 272, 147)
+			drawtext(root_beer_med_outline, text('timer'), 272, 147)
 			local time = value('time')
 			if time == nil then time = vars.arg1 ~= nil and vars.arg1 or 60000 end
 			drawtext(root_beer_outline, format('%02d:%02d', floor((time / 1000) / 60), floor((time / 1000) % 60)), 272, 158)
 		elseif vars.mode == 'marathon' or vars.mode == 'daily' then
-			drawtext(root_beer_med_outline, 'Lassos', 272, 147)
+			drawtext(root_beer_med_outline, text('lassos'), 272, 147)
 			drawtext(root_beer_outline, commalize(p.lassos), 272, 158)
 		end
 
 		-- blocks
-		drawtext(root_beer_med_outline, 'Next', 83, 81, center)
+		drawtext(root_beer_med_outline, text('next'), 83, 81, center)
 		drawimage(assets[p.blocks.next], 73, 61)
 
-		drawtext(root_beer_med_outline, 'Now', 119, 44, center)
+		drawtext(root_beer_med_outline, text('now'), 119, 44, center)
 		drawimage(assets[p.blocks.current], 107 + p.blocks.current_x_offset, 61 + p.blocks.current_y_offset)
 
-		drawtext(root_beer_med_outline, 'Hold', 108, 174, center)
+		drawtext(root_beer_med_outline, text('hold'), 108, 174, center)
 		if assets[p.blocks.hold] ~= nil then drawimage(assets[p.blocks.hold], 107 + p.blocks.hold_x_offset, 155 + p.blocks.hold_y_offset) end
 	end
 
@@ -561,7 +566,9 @@ function game:draw()
 			drawtext(vars.pause_selection == i and root_beer_outline or root_beer, text(vars.pause_selections[i]), 200, 85 + (30 * i) - (15 * #vars.pause_selections) + (vars.pause_selection == i and (-2 + vars.pause_bonk_offset) or 0), center)
 		end
 
-		drawtext(root_beer_small, text('quit_warning'), 200, 160, center)
+		if vars.pause_selections[#vars.pause_selections] == 'quit' then
+			drawtext(root_beer_small, text('quit_warning'), 200, 160, center)
+		end
 	end
 
 	if vars.player_1.handler == 'results' then
@@ -606,7 +613,10 @@ function game:pause()
 			vars.player_2.oldhandler = vars.player_2.handler
 			vars.player_2.handler = 'paused'
 		end
-		vars.pause_selections = {'resume', 'quit'}
+		vars.pause_selections = {'resume'}
+		if vars.player_1.oldhandler ~= 'waiting' then
+			table.insert(vars.pause_selections, 'quit')
+		end
 		vars.pause_selection = 1
 		vars.paused = true
 	end
@@ -742,7 +752,7 @@ function game:place_block(player)
 			original_block = 'tnt', -- read-only!
 			block = 'tnt'
 		}
-		p.handler = 'tnt_waiting'
+		if p.handler == 'playing' then p.handler = 'tnt_waiting' end
 
 		p.blocks.current = p.blocks.next -- move the 'next' block into the current position
 		p.blocks.current_x_offset = -37
@@ -956,7 +966,7 @@ end
 function game:lasso_match(player)
 	local p = vars['player_' .. player]
 
-	p.handler = 'matching'
+	if p.handler == 'playing' then p.handler = 'matching' end
 	playsound(sfx_match)
 	p.lassos = p.lassos + 1
 
@@ -1075,7 +1085,7 @@ function game:over(player)
 		newmusic('audio/music/chill', true)
 		vars.results_selections = {'new_game', 'go_back'}
 		vars.results_selection = 1
-		p.handler = 'results'
+		if p.handler == 'gameover' then p.handler = 'results' end
 	end)
 
 end

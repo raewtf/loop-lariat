@@ -1,5 +1,5 @@
 -- Build target. 'peedee' or 'love'
-platform = 'love'
+platform = 'peedee'
 local fps = 30
 
 local pd
@@ -77,7 +77,7 @@ elseif platform == 'love' then
 	gfx = love.graphics
 	fullscreen = false
 
-	version = '0.5.0'
+	version = '1.0.0'
 
 	gfx.setLineStyle('rough')
 	gfx.setLineJoin('miter')
@@ -91,15 +91,12 @@ setbackgroundcolor('white')
 gfx.setLineWidth(2)
 
 -- Localized text function. if "keyboard" is passed in as true, then on the love version there should be an alternate string set for whether or not the player is using a gamepad (controller) or a keyboard.
-function text(key, keyboard)
+function text(key)
 	local data
 	if save.lang == 'en' then
 		data = langs.en
-	end
-	if keyboard then
-		if platform == 'love' and not save.gamepad then
-			key = key .. '_kb'
-		end
+	elseif save.lang == 'fr' then
+		data = langs.fr
 	end
 	return data and data[key] or key
 end
@@ -267,7 +264,7 @@ elseif platform == 'love' then
 
 	function rescale(newscale)
 		scale = newscale
-		love.window.setMode(400 * newscale, 240 * newscale, {resizable = true, minwidth = 400 * newscale, minheight = 240 * newscale})
+		love.window.setMode(400 * newscale, 240 * newscale, {resizable = true, minwidth = 400, minheight = 240})
 	end
 
 	function love.keypressed(key)
