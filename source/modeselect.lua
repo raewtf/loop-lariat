@@ -49,21 +49,18 @@ elseif platform == 'love' then
 	end
 end
 
--- NOTE: display best score for current mode
--- NOTE: display save.lastdaily.score for daily run, if it's somethin' other than zero.
-
 function modeselect:initialize(args)
 	assets = {
-		bg_1 = newimage('images/modeselect/bg_1'),
-		bg_2 = newimage('images/modeselect/bg_2'),
-		bg_3 = newimage('images/modeselect/bg_3'),
+		bg_1 = newimage(save.image_path .. '/modeselect/bg_1'),
+		bg_2 = newimage(save.image_path .. '/modeselect/bg_2'),
+		bg_3 = newimage(save.image_path .. '/modeselect/bg_3'),
 
-		chamber = newimagetable('images/modeselect/chambers', 210, 210, 20),
+		chamber = newimagetable(save.image_path .. '/modeselect/chambers', 210, 210, 20),
 
-		box = newnineslice('images/modeselect/box', 17, 17, 30, 30),
+		box = newnineslice(save.image_path .. '/modeselect/box', 17, 17, 30, 30),
 		text_box = newimage(300, 95),
 
-		half = newimage('images/half'),
+		half = newimage(save.image_path .. '/half'),
 		modal = newimage(300, 190),
 	}
 
@@ -81,6 +78,7 @@ function modeselect:initialize(args)
 		slerp = 0,
 		slerp_target = 0,
 		modal_bonk_offset = 0,
+		modal_hit_edge = false,
 	}
 	afterdelay('inputdelay', transitioning and transitiontime or 0, function() vars.handler = 'modeselect' end)
 
@@ -112,10 +110,10 @@ function modeselect:update()
 		if pd.buttonJustPressed('b') then self:keypressed('b') end
 		if pd.buttonJustPressed('a') then self:keypressed('a') end
 
-		-- NOTE: add crank selecting/hit edge variable to decision modal
-
-		local ticks = pd.getCrankTicks(6)
+		local ticks
 		if vars.handler == 'modeselect' then
+			ticks = pd.getCrankTicks(6)
+
 			if ticks > 0 then
 				vars.selection = vars.selection + 1
 				if vars.selection > #vars.selections then
@@ -135,6 +133,36 @@ function modeselect:update()
 				vars.chamber_target = vars.chamber_target - (360 / 6)
 				vars.slerp_target = vars.slerp_target - (360 / #vars.selections)
 			end
+		elseif find(vars.handler, '_modal') then
+			ticks = pd.getCrankTicks(4)
+
+			if ticks > 0 then
+				vars.modal_selection = vars.modal_selection + 1
+				if vars.modal_selection > #vars.modal_selections then
+					vars.modal_selection = #vars.modal_selections
+					if not vars.modal_hit_edge then
+						vars.modal_hit_edge = true
+						vars.modal_bonk_offset = 5
+						playsound(sfx_menu_bonk)
+					end
+				else
+					vars.modal_hit_edge = false
+					playsound(sfx_menu_move)
+				end
+			elseif ticks < 0 then
+				vars.modal_selection = vars.modal_selection - 1
+				if vars.modal_selection < 1 then
+					vars.modal_selection = 1
+					if not vars.modal_hit_edge then
+						vars.modal_hit_edge = true
+						vars.modal_bonk_offset = -5
+						playsound(sfx_menu_bonk)
+					end
+				else
+					vars.modal_hit_edge = false
+					playsound(sfx_menu_move)
+				end
+			end
 		end
 	end
 
@@ -152,15 +180,17 @@ function modeselect:draw()
 	drawimage(assets.bg_2, floor(value('bg_2') / 2) * 2, 0)
 	drawimage(assets.bg_3, floor(value('bg_3') / 4) * 4, 0)
 
-	drawtext(root_beer_outline, text('modeselect_prompt'), 150, 25, center)
-	drawtext(root_beer_med_outline, text('modeselect_prompt_2'), 150, 55, center)
+	drawtext(root_beer_outline, text('modeselect_prompt'), 154, 20, center)
+	drawtext(root_beer_med_outline, text('modeselect_prompt_2'), 153, 50, center)
 
 	-- backing for current game mode highlight
 	setcolor(0, 0, 0, 1, 'black')
 	fillrect(0, 97, 400, 43)
 	setcolor(255, 255, 255, 1, 'black')
 
-	if vars.selections[vars.selection] == 'daily' and not vars.dailyrunnable then
+	local sel = vars.selections[vars.selection]
+
+	if sel == 'daily' and not vars.dailyrunnable then
 		local time = getgmttime()
 		if time.hour < 23 then
 			drawtext(root_beer_med_inverted, text('modeselect_refreshes_in') .. (24 - time.hour) .. text('modeselect_h'), 10, 111)
@@ -169,6 +199,20 @@ function modeselect:draw()
 		else
 			drawtext(root_beer_med_inverted, text('modeselect_refreshes_in') .. (60 - time.second) .. text('modeselect_s'), 10, 111)
 		end
+	end
+
+	local draw_score
+	-- TODO: add the strings back forever once we get the FR localization in
+	if sel == 'daily' and save.lastdaily.score ~= 0 then
+		draw_score = (save.lang == 'en' and text('todays_score') or '') .. commalize(save.lastdaily.score)
+	elseif not find(sel, 'vs_') and sel ~= 'chill' and sel ~= 'daily' then
+		if save[sel .. '_best'] > 0 then
+			draw_score = (save.lang == 'en' and text('best_score') or '') .. commalize(save[sel .. '_best'])
+		end
+	end
+
+	if draw_score ~= nil then
+		drawtext(root_beer_med_outline, draw_score, 289, 80, right)
 	end
 
 	-- rotation logic for current game mode highlight
@@ -246,6 +290,7 @@ function modeselect:keypressed(button)
 			if sel == 'arcade' then
 				vars.modal_selections = {'1min', '5min', '10min'}
 				vars.modal_selection = 1
+				vars.modal_hit_edge = false
 				vars.handler = 'arcade_modal'
 				playsound(sfx_select)
 				setmusicvolume(0.5)
@@ -253,6 +298,7 @@ function modeselect:keypressed(button)
 			elseif sel == 'time' then
 				vars.modal_selections = {'1min', '5min', '10min'}
 				vars.modal_selection = 1
+				vars.modal_hit_edge = false
 				vars.handler = 'time_modal'
 				playsound(sfx_select)
 				setmusicvolume(0.5)
@@ -289,6 +335,7 @@ function modeselect:keypressed(button)
 				vars.modal_bonk_offset = -5
 				playsound(sfx_menu_bonk)
 			else
+				vars.modal_hit_edge = false
 				playsound(sfx_menu_move)
 			end
 		elseif button == (platform == 'peedee' and 'down' or platform == 'love' and save.down) then
@@ -298,6 +345,7 @@ function modeselect:keypressed(button)
 				vars.modal_bonk_offset = 5
 				playsound(sfx_menu_bonk)
 			else
+				vars.modal_hit_edge = false
 				playsound(sfx_menu_move)
 			end
 		elseif button == (platform == 'peedee' and 'b' or platform == 'love' and save.secondary) then

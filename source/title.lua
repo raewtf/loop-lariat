@@ -16,6 +16,8 @@ if platform == 'peedee' then
 	import 'options'
 	import 'credits'
 
+	import 'drink'
+
 	class('title').extends(gfx.sprite)
 	function title:init(...)
 		title.super.init(self)
@@ -44,6 +46,8 @@ elseif platform == 'love' then
 	options = require 'options'
 	credits = require 'credits'
 
+	drink = require 'drink'
+
 	title = {}
 	function title:enter(current, ...)
 		local args = {...} -- Arguments passed in through the scene management will arrive here
@@ -52,45 +56,43 @@ elseif platform == 'love' then
 	end
 end
 
--- NOTE: rubdubdub check
--- NOTE: on rubdubdub, move to drink scene
--- NOTE: make drink scene
-
 function title:initialize(args)
 	assets = {
 		-- bg
-		bg = newimage('images/title/bg'),
-		clouds = newimage('images/game/clouds'),
-		parallax_1 = newimage('images/title/parallax_1'),
-		parallax_2 = newimage('images/title/parallax_2'),
-		parallax_3 = newimage('images/title/parallax_3'),
+		bg = newimage(save.image_path .. '/title/bg'),
+		clouds = newimage(save.image_path .. '/game/clouds'),
+		parallax_1 = newimage(save.image_path .. '/title/parallax_1'),
+		parallax_2 = newimage(save.image_path .. '/title/parallax_2'),
+		parallax_3 = newimage(save.image_path .. '/title/parallax_3'),
 
 		-- logo
-		logo = newimage('images/title/logo'),
+		logo = newimage(save.image_path .. '/title/logo'),
 
 		-- arrows for the selection board
-		arrow_1 = newimage('images/title/arrow_1'),
-		arrow_2 = newimage('images/title/arrow_2'),
-		arrow_3 = newimage('images/title/arrow_3'),
-		arrow_4 = newimage('images/title/arrow_4'),
+		arrow_1 = newimage(save.image_path .. '/title/arrow_1'),
+		arrow_2 = newimage(save.image_path .. '/title/arrow_2'),
+		arrow_3 = newimage(save.image_path .. '/title/arrow_3'),
+		arrow_4 = newimage(save.image_path .. '/title/arrow_4'),
 
-		arrow_shadow_1 = newimage('images/title/arrow_shadow_1'),
-		arrow_shadow_2 = newimage('images/title/arrow_shadow_2'),
-		arrow_shadow_3 = newimage('images/title/arrow_shadow_3'),
-		arrow_shadow_4 = newimage('images/title/arrow_shadow_4'),
+		arrow_shadow_1 = newimage(save.image_path .. '/title/arrow_shadow_1'),
+		arrow_shadow_2 = newimage(save.image_path .. '/title/arrow_shadow_2'),
+		arrow_shadow_3 = newimage(save.image_path .. '/title/arrow_shadow_3'),
+		arrow_shadow_4 = newimage(save.image_path .. '/title/arrow_shadow_4'),
 
-		pole = newimage('images/title/pole'),
+		pole = newimage(save.image_path .. '/title/pole'),
 	}
 
 	vars = {
 		returning = args[1] or false,
 		from = args[2] or nil,
 		handler = '',
-		selections = {'modeselect', 'howtoplay', 'statistics', 'options', 'credits'},
+		selections = {},
 		random_arrows = {},
 		selection = 1,
 		bonk_offset = 0,
 		hit_edge = false,
+		sequence = {'right', 'up', 'b', 'down', 'up', 'b', 'down', 'up', 'b'},
+		sequenceindex = 1,
 	}
 	afterdelay('inputdelay', transitioning and transitiontime or 0, function()
 		if vars.returning then
@@ -99,6 +101,13 @@ function title:initialize(args)
 			vars.handler = 'start'
 		end
 	end)
+
+	table.insert(vars.selections, 'modeselect')
+	table.insert(vars.selections, 'howtoplay')
+	-- TODO: add this back once we get the FR localization in
+	if save.lang == 'en' then table.insert(vars.selections, 'statistics') end
+	table.insert(vars.selections, 'options')
+	table.insert(vars.selections, 'credits')
 
 	if vars.returning then
 		newtimer('parallax', transitiontime, -700, -600, 'outSine')
@@ -130,11 +139,14 @@ function title:update()
 	if platform == 'peedee' then
 		if pd.buttonJustPressed('up') then self:keypressed('up') end
 		if pd.buttonJustPressed('down') then self:keypressed('down') end
+		if pd.buttonJustPressed('left') then self:keypressed('left') end
+		if pd.buttonJustPressed('right') then self:keypressed('right') end
 		if pd.buttonJustPressed('b') then self:keypressed('b') end
 		if pd.buttonJustPressed('a') then self:keypressed('a') end
 
-		local ticks = pd.getCrankTicks(4)
 		if vars.handler == 'title' then
+			local ticks = pd.getCrankTicks(4)
+
 			if ticks > 0 then
 				vars.selection = vars.selection + 1
 				if vars.selection > #vars.selections then
@@ -166,6 +178,11 @@ function title:update()
 	end
 
 	vars.bonk_offset = vars.bonk_offset - (vars.bonk_offset * 0.5)
+
+	if vars.sequenceindex > #vars.sequence then
+		--TODO: stopmusic()
+		--TODO: scenemanager:switchscene(drink)
+	end
 end
 
 function title:draw()
@@ -203,7 +220,43 @@ end
 
 function title:keypressed(button)
 	if vars.handler == 'start' then
-		if button == (platform == 'peedee' and 'a' or platform == 'love' and save.primary) then
+		if button == (platform == 'peedee' and 'up' or platform == 'love' and save.up) then
+			if vars.sequence[vars.sequenceindex] == 'up' then
+				vars.sequenceindex = vars.sequenceindex + 1
+			else
+				vars.sequenceindex = 1
+			end
+		elseif button == (platform == 'peedee' and 'down' or platform == 'love' and save.down) then
+			if vars.sequence[vars.sequenceindex] == 'down' then
+				vars.sequenceindex = vars.sequenceindex + 1
+			else
+				vars.sequenceindex = 1
+			end
+		elseif button == (platform == 'peedee' and 'left' or platform == 'love' and save.left) then
+			if vars.sequence[vars.sequenceindex] == 'left' then
+				vars.sequenceindex = vars.sequenceindex + 1
+			else
+				vars.sequenceindex = 1
+			end
+		elseif button == (platform == 'peedee' and 'right' or platform == 'love' and save.right) then
+			if vars.sequence[vars.sequenceindex] == 'right' then
+				vars.sequenceindex = vars.sequenceindex + 1
+			else
+				vars.sequenceindex = 1
+			end
+		elseif button == (platform == 'peedee' and 'b' or platform == 'love' and save.secondary) then
+			if vars.sequence[vars.sequenceindex] == 'b' then
+				vars.sequenceindex = vars.sequenceindex + 1
+			else
+				vars.sequenceindex = 1
+			end
+		elseif button == (platform == 'peedee' and 'a' or platform == 'love' and save.primary) then
+			if vars.sequence[vars.sequenceindex] == 'a' then
+				vars.sequenceindex = vars.sequenceindex + 1
+			else
+				vars.sequenceindex = 1
+			end
+
 			playsound(sfx_place_block)
 			playsound(sfx_match)
 			vars.handler = ''

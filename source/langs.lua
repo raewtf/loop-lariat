@@ -44,8 +44,8 @@ langs = {
 
 		-- in-game
 		["score"] = "Score",
-		["p1_score"] = "P1 Score",
-		["p2_score"] = "P2 Score",
+		["1p_score"] = "1P Score",
+		["2p_score"] = "2P Score",
 		["com_score"] = "COM Score",
 		["wins"] = "Wins",
 
@@ -91,6 +91,36 @@ langs = {
 
 
 
+		-- statistics
+		["statistics_playtime"] = "Play Time: ",
+		["statistics_gametime"] = "Time Spent In-Game: ",
+		["statistics_cumulative_score"] = "Cumulative Score: ",
+
+		["statistics_blocks_placed"] = "Blocks Placed: ",
+		["statistics_total_lassos"] = "Total Lassos: ",
+		["statistics_outlaws_captured"] = "Outlaws Captured: ",
+		["statistics_dynamites_exploded"] = "Dynamites Exploded: ",
+
+		["statistics_total_played"] = "Total Games Played: ",
+		["statistics_arcade_played"] = "Arcade Games Played: ",
+		["statistics_time_played"] = "Time Attack Games Played: ",
+		["statistics_marathon_played"] = "Marathon Games Played: ",
+		["statistics_daily_played"] = "Daily Runs Played: ",
+		["statistics_chill_played"] = "Practice Games Played: ",
+
+		["statistics_total_battles"] = "Total Battles: ",
+		["statistics_vs_2p_played"] = "Battles VS. 2P: ",
+		["statistics_vs_com_played"] = "Battles VS. COM: ",
+		["statistics_wins_1p"] = "1P Wins: ",
+		["statistics_wins_2p"] = "2P Wins: ",
+		["statistics_wins_com"] = "COM Wins: ",
+
+		["statistics_h"] = "h",
+		["statistics_m"] = "m",
+		["statistics_s"] = "s",
+
+
+
 		-- options
 		["options"] = "Options",
 
@@ -99,6 +129,7 @@ langs = {
 		["options_lang"] = "Language: ",
 		["options_reduceflashing"] = "Reduce Flash: ",
 		["options_rumble"] = "Rumble: ",
+		["options_image_path"] = "Style: ",
 		["options_clean_scaling"] = "Scaling: ",
 		["options_remap"] = "Remap Keyboard",
 
@@ -111,6 +142,9 @@ langs = {
 
 		["options_clean_scaling_false"] = "Wonky",
 		["options_clean_scaling_true"] = "Clean",
+
+		["options_images_love"] = "Color",
+		["options_images_peedee"] = "PeeDee",
 
 		["options_en"] = "English",
 		["options_fr"] = "French",
@@ -193,8 +227,8 @@ langs = {
 
 		-- in-game
 		["score"] = "Score",
-		["p1_score"] = "Score J1",
-		["p2_score"] = "Score J2",
+		["1p_score"] = "Score J1",
+		["2p_score"] = "Score J2",
 		["com_score"] = "Score ORDI",
 		["wins"] = "Victoires",
 
@@ -239,6 +273,37 @@ langs = {
 
 
 
+		-- statistics
+		-- !!
+		["statistics_playtime"] = "",
+		["statistics_gametime"] = "",
+		["statistics_cumulative_score"] = "",
+
+		["statistics_blocks_placed"] = "",
+		["statistics_total_lassos"] = "",
+		["statistics_outlaws_captured"] = "",
+		["statistics_dynamites_exploded"] = "",
+
+		["statistics_total_played"] = "",
+		["statistics_arcade_played"] = "",
+		["statistics_time_played"] = "",
+		["statistics_marathon_played"] = "",
+		["statistics_daily_played"] = "",
+		["statistics_chill_played"] = "",
+
+		["statistics_total_battles"] = "",
+		["statistics_vs_2p_played"] = "",
+		["statistics_vs_com_played"] = "",
+		["statistics_wins_1p"] = "",
+		["statistics_wins_2p"] = "",
+		["statistics_wins_com"] = "",
+
+		["statistics_h"] = "",
+		["statistics_m"] = "",
+		["statistics_s"] = "",
+
+
+
 		-- options
 		["options"] = "Options",
 
@@ -247,6 +312,7 @@ langs = {
 		["options_lang"] = "Langue: ",
 		["options_reduceflashing"] = "Animations : ",
 		["options_rumble"] = "Vibrations : ",
+		["options_image_path"] = "", -- !!
 		["options_clean_scaling"] = "Échelle : ",
 		["options_remap"] = "Config. touches",
 
@@ -260,6 +326,9 @@ langs = {
 
 		["options_clean_scaling_false"] = "Auto.",
 		["options_clean_scaling_true"] = "Entière",
+
+		["options_images_love"] = "", -- !!
+		["options_images_peedee"] = "", -- !!
 
 		["options_en"] = "English",
 		["options_fr"] = "Français",

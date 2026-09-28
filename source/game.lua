@@ -54,66 +54,66 @@ end
 function game:initialize(args)
 	assets = {
 		-- cursors!
-		cursor = newimage('images/game/cursor'),
-		cursor_bonk_1 = newimage('images/game/cursor_bonk_1'),
-		cursor_bonk_2 = newimage('images/game/cursor_bonk_2'),
-		cursor_place_1 = newimage('images/game/cursor_place_1'),
-		cursor_place_2 = newimage('images/game/cursor_place_2'),
+		cursor = newimage(save.image_path .. '/game/cursor'),
+		cursor_bonk_1 = newimage(save.image_path .. '/game/cursor_bonk_1'),
+		cursor_bonk_2 = newimage(save.image_path .. '/game/cursor_bonk_2'),
+		cursor_place_1 = newimage(save.image_path .. '/game/cursor_place_1'),
+		cursor_place_2 = newimage(save.image_path .. '/game/cursor_place_2'),
 
 		-- lasso blocks!
-		lasso_u_d = newimage('images/game/blocks/lasso_u_d'),
-		lasso_u_d_connect_u = newimage('images/game/blocks/lasso_u_d_connect_u'),
-		lasso_u_d_connect_d = newimage('images/game/blocks/lasso_u_d_connect_d'),
-		lasso_u_d_connect_u_d = newimage('images/game/blocks/lasso_u_d_connect_u_d'),
+		lasso_u_d = newimage(save.image_path .. '/game/blocks/lasso_u_d'),
+		lasso_u_d_connect_u = newimage(save.image_path .. '/game/blocks/lasso_u_d_connect_u'),
+		lasso_u_d_connect_d = newimage(save.image_path .. '/game/blocks/lasso_u_d_connect_d'),
+		lasso_u_d_connect_u_d = newimage(save.image_path .. '/game/blocks/lasso_u_d_connect_u_d'),
 
-		lasso_l_r = newimage('images/game/blocks/lasso_l_r'),
-		lasso_l_r_connect_l = newimage('images/game/blocks/lasso_l_r_connect_l'),
-		lasso_l_r_connect_r = newimage('images/game/blocks/lasso_l_r_connect_r'),
-		lasso_l_r_connect_l_r = newimage('images/game/blocks/lasso_l_r_connect_l_r'),
+		lasso_l_r = newimage(save.image_path .. '/game/blocks/lasso_l_r'),
+		lasso_l_r_connect_l = newimage(save.image_path .. '/game/blocks/lasso_l_r_connect_l'),
+		lasso_l_r_connect_r = newimage(save.image_path .. '/game/blocks/lasso_l_r_connect_r'),
+		lasso_l_r_connect_l_r = newimage(save.image_path .. '/game/blocks/lasso_l_r_connect_l_r'),
 
-		lasso_u_l = newimage('images/game/blocks/lasso_u_l'),
-		lasso_u_l_connect_u = newimage('images/game/blocks/lasso_u_l_connect_u'),
-		lasso_u_l_connect_l = newimage('images/game/blocks/lasso_u_l_connect_l'),
-		lasso_u_l_connect_u_l = newimage('images/game/blocks/lasso_u_l_connect_u_l'),
+		lasso_u_l = newimage(save.image_path .. '/game/blocks/lasso_u_l'),
+		lasso_u_l_connect_u = newimage(save.image_path .. '/game/blocks/lasso_u_l_connect_u'),
+		lasso_u_l_connect_l = newimage(save.image_path .. '/game/blocks/lasso_u_l_connect_l'),
+		lasso_u_l_connect_u_l = newimage(save.image_path .. '/game/blocks/lasso_u_l_connect_u_l'),
 
-		lasso_u_r = newimage('images/game/blocks/lasso_u_r'),
-		lasso_u_r_connect_u = newimage('images/game/blocks/lasso_u_r_connect_u'),
-		lasso_u_r_connect_r = newimage('images/game/blocks/lasso_u_r_connect_r'),
-		lasso_u_r_connect_u_r = newimage('images/game/blocks/lasso_u_r_connect_u_r'),
+		lasso_u_r = newimage(save.image_path .. '/game/blocks/lasso_u_r'),
+		lasso_u_r_connect_u = newimage(save.image_path .. '/game/blocks/lasso_u_r_connect_u'),
+		lasso_u_r_connect_r = newimage(save.image_path .. '/game/blocks/lasso_u_r_connect_r'),
+		lasso_u_r_connect_u_r = newimage(save.image_path .. '/game/blocks/lasso_u_r_connect_u_r'),
 
-		lasso_d_l = newimage('images/game/blocks/lasso_d_l'),
-		lasso_d_l_connect_d = newimage('images/game/blocks/lasso_d_l_connect_d'),
-		lasso_d_l_connect_l = newimage('images/game/blocks/lasso_d_l_connect_l'),
-		lasso_d_l_connect_d_l = newimage('images/game/blocks/lasso_d_l_connect_d_l'),
+		lasso_d_l = newimage(save.image_path .. '/game/blocks/lasso_d_l'),
+		lasso_d_l_connect_d = newimage(save.image_path .. '/game/blocks/lasso_d_l_connect_d'),
+		lasso_d_l_connect_l = newimage(save.image_path .. '/game/blocks/lasso_d_l_connect_l'),
+		lasso_d_l_connect_d_l = newimage(save.image_path .. '/game/blocks/lasso_d_l_connect_d_l'),
 
-		lasso_d_r = newimage('images/game/blocks/lasso_d_r'),
-		lasso_d_r_connect_d = newimage('images/game/blocks/lasso_d_r_connect_d'),
-		lasso_d_r_connect_r = newimage('images/game/blocks/lasso_d_r_connect_r'),
-		lasso_d_r_connect_d_r = newimage('images/game/blocks/lasso_d_r_connect_d_r'),
+		lasso_d_r = newimage(save.image_path .. '/game/blocks/lasso_d_r'),
+		lasso_d_r_connect_d = newimage(save.image_path .. '/game/blocks/lasso_d_r_connect_d'),
+		lasso_d_r_connect_r = newimage(save.image_path .. '/game/blocks/lasso_d_r_connect_r'),
+		lasso_d_r_connect_d_r = newimage(save.image_path .. '/game/blocks/lasso_d_r_connect_d_r'),
 
 		-- block effects (shine and clear)
-		block_shine_1 = newimage('images/game/block_shine_1'),
-		block_shine_2 = newimage('images/game/block_shine_2'),
-		block_shine_3 = newimage('images/game/block_shine_3'),
+		block_shine_1 = newimage(save.image_path .. '/game/block_shine_1'),
+		block_shine_2 = newimage(save.image_path .. '/game/block_shine_2'),
+		block_shine_3 = newimage(save.image_path .. '/game/block_shine_3'),
 
-		block_clear_1 = newimage('images/game/block_clear_1'),
-		block_clear_2 = newimage('images/game/block_clear_2'),
-		block_clear_3 = newimage('images/game/block_clear_3'),
-		block_clear_4 = newimage('images/game/block_clear_4'),
+		block_clear_1 = newimage(save.image_path .. '/game/block_clear_1'),
+		block_clear_2 = newimage(save.image_path .. '/game/block_clear_2'),
+		block_clear_3 = newimage(save.image_path .. '/game/block_clear_3'),
+		block_clear_4 = newimage(save.image_path .. '/game/block_clear_4'),
 
 		-- ...blocks!
-		tnt = newimage('images/game/blocks/tnt'),
-		tnt_prime_1 = newimage('images/game/blocks/tnt_prime_1'),
-		tnt_prime_2 = newimage('images/game/blocks/tnt_prime_2'),
+		tnt = newimage(save.image_path .. '/game/blocks/tnt'),
+		tnt_prime_1 = newimage(save.image_path .. '/game/blocks/tnt_prime_1'),
+		tnt_prime_2 = newimage(save.image_path .. '/game/blocks/tnt_prime_2'),
 
-		outlaw = newimage('images/game/blocks/outlaw'),
-		tumble = newimage('images/game/blocks/tumble'),
+		outlaw = newimage(save.image_path .. '/game/blocks/outlaw'),
+		tumble = newimage(save.image_path .. '/game/blocks/tumble'),
 
-		countdown = newimagetable('images/game/countdown', 400, 240, 60),
+		countdown = newimagetable(save.image_path .. '/game/countdown', 400, 240, 60),
 
 		-- pause assets
-		half = newimage('images/half'),
-		box = newnineslice('images/modeselect/box', 17, 17, 30, 30),
+		half = newimage(save.image_path .. '/half'),
+		box = newnineslice(save.image_path .. '/modeselect/box', 17, 17, 30, 30),
 		modal = newimage(300, 190),
 	}
 
@@ -123,7 +123,7 @@ function game:initialize(args)
 
 	vars = {
 		mode = args[1] or 'time', -- 'arcade', 'time', 'marathon', 'daily', 'vs', or 'chill'
-		arg1 = args[2], -- if 'arcade' or 'time', number in milliseconds. if 'vs', string that's either 'p2' or 'com'.
+		arg1 = args[2], -- if 'arcade' or 'time', number in milliseconds. if 'vs', string that's either '2p' or 'com'.
 		arg2 = args[3], -- if 'vs', array with number of wins for each player.
 		garbage_threshold = 3,
 		paused = false,
@@ -218,46 +218,56 @@ function game:initialize(args)
 	end
 
 	if vars.mode == 'arcade' then
-		assets.bg = newimage('images/game/bg_arcade_1')
-		assets.clouds = newimage('images/game/clouds')
-		assets.bg_2 = newimage('images/game/bg_arcade_2')
-		assets.ui = newimage('images/game/1p_ui')
+		save.arcade_played = save.arcade_played + 1
+		assets.bg = newimage(save.image_path .. '/game/bg_arcade_1')
+		assets.clouds = newimage(save.image_path .. '/game/clouds')
+		assets.bg_2 = newimage(save.image_path .. '/game/bg_arcade_2')
+		assets.ui = newimage(save.image_path .. '/game/1p_ui')
 		loopingtimer('clouds', 125000, 0, -1200, 'linear')
 	elseif vars.mode == 'time' then
-		assets.bg = newimage('images/game/bg_time_1')
-		assets.clouds = newimage('images/game/clouds')
-		assets.bg_2 = newimage('images/game/bg_time_2')
-		assets.ui = newimage('images/game/1p_ui')
-		assets.anim_overlay = newimagetable('images/game/time_anim_overlay', 400, 240, 4)
+		save.time_played = save.time_played + 1
+		assets.bg = newimage(save.image_path .. '/game/bg_time_1')
+		assets.clouds = newimage(save.image_path .. '/game/clouds')
+		assets.bg_2 = newimage(save.image_path .. '/game/bg_time_2')
+		assets.ui = newimage(save.image_path .. '/game/1p_ui')
+		assets.anim_overlay = newimagetable(save.image_path .. '/game/time_anim_overlay', 400, 240, 4)
 		loopingtimer('clouds', 125000, 0, -1200, 'linear')
 	elseif vars.mode == 'marathon' then
-		assets.bg = newimage('images/game/bg_marathon')
-		assets.ui = newimage('images/game/1p_ui')
-		assets.anim_overlay = newimagetable('images/game/marathon_anim_overlay', 400, 240, 4)
+		save.marathon_played = save.marathon_played + 1
+		assets.bg = newimage(save.image_path .. '/game/bg_marathon')
+		assets.ui = newimage(save.image_path .. '/game/1p_ui')
+		assets.anim_overlay = newimagetable(save.image_path .. '/game/marathon_anim_overlay', 400, 240, 4)
 	elseif vars.mode == 'daily' then
-		assets.bg = newimage('images/game/bg_daily')
-		assets.ui = newimage('images/game/1p_ui')
-		assets.anim_overlay = newimagetable('images/game/daily_anim_overlay', 400, 240, 4)
+		save.daily_played = save.daily_played + 1
+		assets.bg = newimage(save.image_path .. '/game/bg_daily')
+		assets.ui = newimage(save.image_path .. '/game/1p_ui')
+		assets.anim_overlay = newimagetable(save.image_path .. '/game/daily_anim_overlay', 400, 240, 4)
 	elseif vars.mode == 'vs' then
+		if vars.arg1 == '2p' then
+			save.vs_2p_played = save.vs_2p_played + 1
+		elseif vars.arg1 == 'com' then
+			save.vs_com_played = save.vs_com_played + 1
+		end
 		-- TODO: colorize win images in löve
-		assets.wins_0_0 = newimage('images/game/wins/wins_' .. vars.arg1 .. '_0_0')
-		assets.wins_1_0 = newimage('images/game/wins/wins_' .. vars.arg1 .. '_1_0')
-		assets.wins_2_0 = newimage('images/game/wins/wins_' .. vars.arg1 .. '_2_0')
-		assets.wins_0_1 = newimage('images/game/wins/wins_' .. vars.arg1 .. '_0_1')
-		assets.wins_0_2 = newimage('images/game/wins/wins_' .. vars.arg1 .. '_0_2')
-		assets.wins_1_1 = newimage('images/game/wins/wins_' .. vars.arg1 .. '_1_1')
-		assets.wins_1_2 = newimage('images/game/wins/wins_' .. vars.arg1 .. '_1_2')
-		assets.wins_2_1 = newimage('images/game/wins/wins_' .. vars.arg1 .. '_2_1')
+		assets.wins_0_0 = newimage(save.image_path .. '/game/wins/wins_' .. vars.arg1 .. '_0_0')
+		assets.wins_1_0 = newimage(save.image_path .. '/game/wins/wins_' .. vars.arg1 .. '_1_0')
+		assets.wins_2_0 = newimage(save.image_path .. '/game/wins/wins_' .. vars.arg1 .. '_2_0')
+		assets.wins_0_1 = newimage(save.image_path .. '/game/wins/wins_' .. vars.arg1 .. '_0_1')
+		assets.wins_0_2 = newimage(save.image_path .. '/game/wins/wins_' .. vars.arg1 .. '_0_2')
+		assets.wins_1_1 = newimage(save.image_path .. '/game/wins/wins_' .. vars.arg1 .. '_1_1')
+		assets.wins_1_2 = newimage(save.image_path .. '/game/wins/wins_' .. vars.arg1 .. '_1_2')
+		assets.wins_2_1 = newimage(save.image_path .. '/game/wins/wins_' .. vars.arg1 .. '_2_1')
 
-		assets.bg = newimage('images/game/bg_vs_1')
-		assets.clouds = newimage('images/game/clouds')
-		assets.bg_2 = newimage('images/game/bg_vs_2')
-		assets.ui = newimage('images/game/2p_ui')
+		assets.bg = newimage(save.image_path .. '/game/bg_vs_1')
+		assets.clouds = newimage(save.image_path .. '/game/clouds')
+		assets.bg_2 = newimage(save.image_path .. '/game/bg_vs_2')
+		assets.ui = newimage(save.image_path .. '/game/2p_ui')
 		loopingtimer('clouds', 125000, 0, -1200, 'linear')
 	elseif vars.mode == 'chill' then
-		assets.bg = newimage('images/game/bg_chill')
-		assets.ui = newimage('images/game/1p_ui')
-		assets.anim_overlay = newimagetable('images/game/chill_anim_overlay', 400, 240, 4)
+		save.chill_played = save.chill_played + 1
+		assets.bg = newimage(save.image_path .. '/game/bg_chill')
+		assets.ui = newimage(save.image_path .. '/game/1p_ui')
+		assets.anim_overlay = newimagetable(save.image_path .. '/game/chill_anim_overlay', 400, 240, 4)
 	end
 
 	afterdelay('outlaw_delay', 1000, function()
@@ -266,7 +276,7 @@ function game:initialize(args)
 		if vars.mode == 'vs' then self:place_outlaws(2) end
 
 		afterdelay('countdown_delay', 1000, function()
-			-- TODO: change P2's handler if mode is VS
+			-- TODO: change 2p's handler if mode is VS
 			if vars.mode == 'chill' then
 				if vars.player_1.handler == 'waiting' then vars.player_1.handler = 'playing' end
 				newmusic('audio/music/chill', true)
@@ -300,7 +310,37 @@ function game:update()
 		if pd.buttonJustPressed('b') then self:keypressed('b') end
 		if pd.buttonJustPressed('a') then self:keypressed('a') end
 
-		-- NOTE: add crank scrolling/hit edge variable to results screen
+		if vars.player_1.handler == 'results' then
+			local ticks = pd.getCrankTicks(4)
+
+			if ticks > 0 then
+				vars.results_selection = vars.results_selection + 1
+				if vars.results_selection > #vars.results_selections then
+					vars.results_selection = #vars.results_selections
+					if not vars.results_hit_edge then
+						vars.results_hit_edge = true
+						vars.results_bonk_offset = 5
+						playsound(sfx_menu_bonk)
+					end
+				else
+					vars.results_hit_edge = false
+					playsound(sfx_menu_move)
+				end
+			elseif ticks < 0 then
+				vars.results_selection = vars.results_selection - 1
+				if vars.results_selection < 1 then
+					vars.results_selection = 1
+					if not vars.results_hit_edge then
+						vars.results_hit_edge = true
+						vars.results_bonk_offset = -5
+						playsound(sfx_menu_bonk)
+					end
+				else
+					vars.results_hit_edge = false
+					playsound(sfx_menu_move)
+				end
+			end
+		end
 	end
 
 	for i = 1, (vars.mode == 'vs' and 2 or 1) do
@@ -312,6 +352,8 @@ function game:update()
 		p.blocks.hold_x_offset = p.blocks.hold_x_offset - (p.blocks.hold_x_offset * 0.5)
 		p.blocks.hold_y_offset = p.blocks.hold_y_offset - (p.blocks.hold_y_offset * 0.5)
 	end
+
+	if vars.player_1.handler == 'playing' then save.gametime = save.gametime + 1 end
 
 	-- doing mid-game checks
 	for i = 1, (vars.mode == 'vs' and 2 or 1) do
@@ -393,15 +435,15 @@ function game:draw()
 	if assets.anim_overlay ~= nil then drawimagetable(assets.anim_overlay, floor(value('anim_overlay')), 0, 0) end
 
 	-- UI drawing
-	-- NOTE: less confusing way to display NOW and NEXT?
+	-- TODO: less confusing way to display NOW and NEXT?
 	if vars.mode == 'vs' then
 		drawimage(assets.ui, 0, 0)
 
 		-- score/time displays
-		drawtext(root_beer_med_outline, text('p1_score'), 163, 51)
+		drawtext(root_beer_med_outline, text('1p_score'), 163, 51)
 		drawtext(root_beer_outline, commalize(vars.player_1.score), 163, 62)
-		if vars.arg1 == 'p2' then
-			drawtext(root_beer_med_outline, text('p2_score'), 237, 99, right)
+		if vars.arg1 == '2p' then
+			drawtext(root_beer_med_outline, text('2p_score'), 237, 99, right)
 		elseif vars.arg1 == 'com' then
 			drawtext(root_beer_med_outline, text('com_score'), 237, 99, right)
 		end
@@ -411,7 +453,7 @@ function game:draw()
 		-- empty and full. best 2 of 3, winning spot in the middle
 		-- 158 Y
 
-		-- P1's blocks
+		-- 1p's blocks
 		local p = vars.player_1
 
 		drawtext(root_beer_med_outline, text('next'), 52, 23, right)
@@ -423,7 +465,7 @@ function game:draw()
 		drawtext(root_beer_med_outline, text('hold'), 131, 23, center)
 		if assets[p.blocks.hold] ~= nil then drawimage(assets[p.blocks.hold], 119 + p.blocks.hold_x_offset, 40 + p.blocks.hold_y_offset) end
 
-		-- P2's blocks
+		-- 2p's blocks
 		local p = vars.player_2
 
 		drawtext(root_beer_med_outline, text('next'), 284, 23, right)
@@ -775,10 +817,12 @@ function game:place_block(player)
 		-- placing FX on the cursor and block
 		resettimer('anim_cursor_place_' .. player, 150, 1, 3)
 		newtimer('anim_block_shine_' .. player .. '_' .. x .. '_' .. y, 150, 1, 4)
+		if not self:is_com(player) then save.blocks_placed = save.blocks_placed + 1 end
 		rumble(0.5, 0.5, 0.1)
 		playsound(sfx_place_tnt)
 
 		p.score = p.score + 5
+		if not self:is_com(player) then save.cumulative_score = save.cumulative_score + 5 end
 
 		p.board[x][y] = {
 			original_block = 'tnt', -- read-only!
@@ -798,6 +842,7 @@ function game:place_block(player)
 		afterdelay('tnt_prime_1_' .. player, 333, function() p.blocks.tnt_prime_level = 1 rumble(0.25, 0.25, 0.3) end)
 		afterdelay('tnt_prime_2_' .. player, 666, function() p.blocks.tnt_prime_level = 2 rumble(0.5, 0.5, 0.3) end)
 		afterdelay('tnt_explosion_' .. player, 1000, function()
+			if not self:is_com(player) then save.dynamites_exploded = save.dynamites_exploded + 1 end
 			-- explosion SFX (sorry for the global call)
 			playsound(_G['sfx_explode_' .. randInt(1, 3)])
 
@@ -816,10 +861,12 @@ function game:place_block(player)
 		-- placing FX on the cursor and block
 		resettimer('anim_cursor_place_' .. player, 150, 1, 3)
 		newtimer('anim_block_shine_' .. player .. '_' .. x .. '_' .. y, 150, 1, 4)
+		if not self:is_com(player) then save.blocks_placed = save.blocks_placed + 1 end
 		rumble(0.5, 0.5, 0.1)
 		playsound(sfx_place_block)
 
 		p.score = p.score + 5
+		if not self:is_com(player) then save.cumulative_score = save.cumulative_score + 5 end
 
 		p.board[x][y] = {
 			original_block = block, -- read-only!
@@ -994,6 +1041,10 @@ function game:lasso_dirs(p, x, y)
 	end
 end
 
+function game:is_com(player)
+	return (vars.arg1 == 'com' and player == 2)
+end
+
 -- run this function if a full lasso loop has been found!
 function game:lasso_match(player)
 	local p = vars['player_' .. player]
@@ -1001,6 +1052,7 @@ function game:lasso_match(player)
 	if p.handler == 'playing' then p.handler = 'matching' end
 	playsound(sfx_match)
 	p.lassos = p.lassos + 1
+	if not self:is_com(player) then save.total_lassos = save.total_lassos + 1 end
 
 	if vars.mode == 'arcade' then
 		local time = value('time')
@@ -1016,6 +1068,7 @@ function game:lasso_match(player)
 		local anim_lasso_y = p.lassos_in_match[i][2]
 		afterdelay('anim_match_' .. i .. '_' .. player, (50 * i), function()
 			p.score = p.score + (5 * i)
+			if not self:is_com(player) then save.cumulative_score = save.cumulative_score + (5 * i) end
 			rumble(0.5, 0.5, 0.1)
 			newtimer('anim_block_shine_' .. player .. '_' .. anim_lasso_x .. '_' .. anim_lasso_y, 150, 1, 4)
 		end)
@@ -1065,6 +1118,10 @@ function game:lasso_match(player)
 		end
 
 		p.score = p.score + (100 * outlaws_caught)
+		if not self:is_com(player) then
+			save.outlaws_captured = save.outlaws_captured + outlaws_caught
+			save.cumulative_score = save.cumulative_score + (100 * outlaws_caught)
+		end
 
 		rumble(0.5, 0.5, 0.5)
 
@@ -1122,10 +1179,13 @@ function game:over(player)
 			newmusic('audio/music/chill', true)
 			vars.results_selections = {'new_game', 'go_back'}
 			vars.results_selection = 1
+			vars.results_hit_edge = false
 			if p.handler == 'gameover' then p.handler = 'results' end
 		end)
 	end)
 
+	-- TODO: increment save win counters accordingly for VS modes
+	-- TODO: increment arg2 win counters accordingly for VS modes, too
 end
 
 function game:keypressed(button)
@@ -1219,6 +1279,7 @@ function game:keypressed(button)
 				vars.results_bonk_offset = -5
 				playsound(sfx_menu_bonk)
 			else
+				vars.results_hit_edge = false
 				playsound(sfx_menu_move)
 			end
 		elseif button == (platform == 'peedee' and 'down' or platform == 'love' and save.down) then
@@ -1228,6 +1289,7 @@ function game:keypressed(button)
 				vars.results_bonk_offset = 5
 				playsound(sfx_menu_bonk)
 			else
+				vars.results_hit_edge = false
 				playsound(sfx_menu_move)
 			end
 		elseif button == (platform == 'peedee' and 'b' or platform == 'love' and save.secondary) then

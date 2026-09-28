@@ -307,7 +307,10 @@ function fademusic(delay)
 			[_G] = {['volume'] = 0}
 		})
 			:finish(function()
-				if music ~= nil then love.audio.stop(music) end
+				if music ~= nil then
+					love.audio.stop(music)
+					music = nil
+				end
 			end)
 			:group(transition)
 	end
@@ -332,7 +335,14 @@ function newmusic(file, loop, range)
 		music = love.audio.newSource(file .. '.wav', 'stream')
 		volume = 1
 		if loop then
-			music:setLooping(true)
+			if range ~= nil then
+				music_loop_range = range
+			else
+				music_loop_range = 0
+				music:setLooping(true)
+			end
+		else
+			music_loop_range = 0
 		end
 		love.audio.play(music)
 	end

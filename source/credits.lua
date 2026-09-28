@@ -46,7 +46,7 @@ end
 
 function credits:initialize(args)
 	assets = {
-		bg = newimage('images/credits/bg'),
+		bg = newimage(save.image_path .. '/credits/bg'),
 	}
 
 	vars = {

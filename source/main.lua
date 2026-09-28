@@ -1,5 +1,5 @@
 -- Build target. 'peedee' or 'love'
-platform = 'love'
+platform = 'peedee'
 local fps = 30
 
 local pd
@@ -10,6 +10,8 @@ local fullscreen
 
 gamepad = false
 music = nil
+music_first_play = true
+music_loop_range = 0
 volume = 1
 catalog = false
 
@@ -83,8 +85,6 @@ elseif platform == 'love' then
 	gfx.setLineJoin('miter')
 	gfx.setDefaultFilter('nearest', 'nearest')
 	love.keyboard.setKeyRepeat(false)
-
-	icon = love.image.newImageData('images/system/icon.png')
 end
 
 setbackgroundcolor('white')
@@ -158,9 +158,13 @@ function savecheck()
 	save.time_best = save.time_best or 0
 	save.marathon_best = save.marathon_best or 0
 
+	save.playtime = save.playtime or 0
+	save.gametime = save.gametime or 0
+	save.cumulative_score = save.cumulative_score or 0
+
+	save.blocks_placed = save.blocks_placed or 0
 	save.total_lassos = save.total_lassos or 0
 	save.outlaws_captured = save.outlaws_captured or 0
-	save.blocks_placed = save.blocks_placed or 0
 	save.dynamites_exploded = save.dynamites_exploded or 0
 
 	save.arcade_played = save.arcade_played or 0
@@ -168,9 +172,15 @@ function savecheck()
 	save.marathon_played = save.marathon_played or 0
 	save.daily_played = save.daily_played or 0
 	save.chill_played = save.chill_played or 0
+	-- ^^ 'total game play count' would be all of these variables combined ^^
+
+	save.vs_2p_played = save.vs_2p_played or 0
 	save.vs_com_played = save.vs_com_played or 0
-	save.vs_p2_played = save.vs_p2_played or 0
-	-- total game play count would be all of these combined
+	-- ^^ 'total battles' is both of these combined. ^^
+
+	save.wins_1p = save.wins_1p or 0
+	save.wins_2p = save.wins_2p or 0
+	save.wins_com = save.wins_com or 0
 
 	save.reduceflashing = save.reduceflashing or (platform == 'peedee' and 2 or platform == 'love' and 0) -- Set to "system" on peedee, "off" in love.
 end
@@ -213,13 +223,13 @@ function load_common_fonts()
 	end
 end
 
-fade = newimagetable('images/fade', 400, 240, 34)
-fade_white = newimagetable('images/fade_white', 400, 240, 34)
-
 if platform == 'peedee' then
 	savecheck()
 	load_common_sfx()
 	load_common_fonts()
+
+	fade = newimagetable(save.image_path .. '/fade', 400, 240, 34)
+	fade_white = newimagetable(save.image_path .. '/fade_white', 400, 240, 34)
 end
 
 -- This function returns the inputted number, with the ordinal suffix tacked on at the end (as a string)
@@ -249,8 +259,6 @@ function commalize(amount)
   	return formatted
 end
 
--- TODO: catalog app feature
--- TODO: catalog app billboard
 -- TODO: catalog app wide
 
 if platform == 'peedee' then
@@ -274,6 +282,8 @@ if platform == 'peedee' then
 		if (save.lastdaily.score ~= 0) and not (save.lastdaily.year == time.year and save.lastdaily.month == time.month and save.lastdaily.day == time.day) then
 			 save.lastdaily.score = 0
 		end
+
+		save.playtime = save.playtime + 1
 
 		-- Catch-all stuff ...
 		gfx.sprite.update()
@@ -468,11 +478,11 @@ elseif platform == 'love' then
 			fw = w / 400
 			fh = h / 240
 		end
-		if fw < fh and fw >= 2 then
+		if fw < fh and fw >= 1 then
 			scale = fw
-		elseif fh < fw and fh >= 2 then
+		elseif fh < fw and fh >= 1 then
 			scale = fh
-		elseif fw == fh and fw >= 2 then
+		elseif fw == fh and fw >= 1 then
 			scale = fw
 		end
 	end
@@ -482,7 +492,11 @@ elseif platform == 'love' then
 		load_common_sfx()
 		load_common_fonts()
 
+		icon = love.image.newImageData(save.image_path .. '/system/icon.png')
 		love.window.setIcon(icon)
+
+		fade = newimagetable(save.image_path .. '/fade', 400, 240, 34)
+		fade_white = newimagetable(save.image_path .. '/fade_white', 400, 240, 34)
 
 		min_dt = 1 / fps
 		next_time = love.timer.getTime()
@@ -496,6 +510,7 @@ elseif platform == 'love' then
 
 	function love.update(dt)
 		next_time = next_time + min_dt
+		save.playtime = save.playtime + 1
 
 		-- resetting daily score if need be
 		local time = getgmttime()
@@ -511,7 +526,15 @@ elseif platform == 'love' then
 
 		if music ~= nil then
 			music:setVolume(volume)
-			if not music:isPlaying() then music = nil end
+			if not music:isPlaying() then
+				if music_loop_range > 0 then
+					-- i don't know why the range has to be divided by two. i don't get it. this sucks. what the fuck.
+					music:seek(music_loop_range / 2, 'seconds')
+					love.audio.play(music)
+				else
+					music = nil
+				end
+			end
 		end
 	end
 

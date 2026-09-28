@@ -45,32 +45,18 @@ elseif platform == 'love' then
 end
 
 function options:initialize(args)
-	assets = {
-		bg = newimage('images/options/bg'),
-		half = newimage('images/half'),
-		box = newnineslice('images/modeselect/box', 17, 17, 30, 30),
-		modal = newimage(300, 190),
-	}
-
-	pushcontext(assets.modal)
-		drawnineslice(assets.box, 0, 0, 300, 190)
-	popcontext()
+	self:create_assets()
 
 	vars = {
 		handler = '',
-		selections = {'music', 'sfx', 'lang', 'reduceflashing'},
+		selections = {},
 		selection = 1,
 		bonk_offset = 0,
 		hit_edge = false,
 	}
 	afterdelay('inputdelay', transitioning and transitiontime or 0, function() vars.handler = 'options' end)
 
-	if platform == 'love' then
-		table.insert(vars.selections, 'rumble')
-		table.insert(vars.selections, 'clean_scaling')
-		table.insert(vars.selections, 'remap')
-		vars.remap_step = 1
-	end
+	self:create_selections()
 end
 
 function options:update()
@@ -82,8 +68,9 @@ function options:update()
 		if pd.buttonJustPressed('b') then self:keypressed('b') end
 		if pd.buttonJustPressed('a') then self:keypressed('a') end
 
-		local ticks = pd.getCrankTicks(4)
 		if vars.handler == 'options' then
+			local ticks = pd.getCrankTicks(4)
+
 			if ticks > 0 then
 				vars.selection = vars.selection + 1
 				if vars.selection > #vars.selections then
@@ -115,6 +102,43 @@ function options:update()
 	end
 
 	vars.bonk_offset = vars.bonk_offset - (vars.bonk_offset * 0.5)
+end
+
+-- has to be in its own function for peedee/color asset swapping
+function options:create_assets()
+	assets = {
+		bg = newimage(save.image_path .. '/options/bg'),
+		half = newimage(save.image_path .. '/half'),
+		box = newnineslice(save.image_path .. '/modeselect/box', 17, 17, 30, 30),
+		modal = newimage(300, 190),
+	}
+
+	-- creating modal box for remap controls
+	pushcontext(assets.modal)
+		drawnineslice(assets.box, 0, 0, 300, 190)
+	popcontext()
+
+	-- adjusting löve executable icon, too. lol
+	if platform == 'love' then
+		icon = love.image.newImageData(save.image_path .. '/system/icon.png')
+		love.window.setIcon(icon)
+	end
+end
+
+function options:create_selections()
+	vars.selections = {}
+	table.insert(vars.selections, 'music')
+	table.insert(vars.selections, 'sfx')
+	table.insert(vars.selections, 'lang')
+	table.insert(vars.selections, 'reduceflashing')
+	if platform == 'love' then
+		table.insert(vars.selections, 'rumble')
+		-- TODO: add this back once we get the FR localization in
+		if save.lang == 'en' then table.insert(vars.selections, 'image_path') end
+		table.insert(vars.selections, 'clean_scaling')
+		table.insert(vars.selections, 'remap')
+		vars.remap_step = 1
+	end
 end
 
 function options:draw()
@@ -198,6 +222,7 @@ function options:keypressed(button)
 				elseif save.lang == 'fr' then
 					save.lang = 'en'
 				end
+				self:create_selections()
 				playsound(sfx_select)
 			elseif sel == 'reduceflashing' then
 				save.reduceflashing = save.reduceflashing - 1
@@ -209,13 +234,21 @@ function options:keypressed(button)
 				save.rumble = not save.rumble
 				rumble(1, 1, 0.5)
 				playsound(sfx_select)
-			elseif sel == 'remap' then
-				playsound(sfx_menu_bonk)
+			elseif sel == 'image_path' then
+				if save.image_path == 'images_love' then
+					save.image_path = 'images_peedee'
+				elseif save.image_path == 'images_peedee' then
+					save.image_path = 'images_love'
+				end
+				self:create_assets()
+				playsound(sfx_select)
 			elseif sel == 'clean_scaling' then
 				save.clean_scaling = not save.clean_scaling
 				local w, h, _ = love.window.getMode()
 				love.resize(w, h)
 				playsound(sfx_select)
+			elseif sel == 'remap' then
+				playsound(sfx_menu_bonk)
 			end
 		elseif button == (platform == 'peedee' and 'right' or platform == 'love' and save.right) then
 			local sel = vars.selections[vars.selection]
@@ -236,6 +269,7 @@ function options:keypressed(button)
 				elseif save.lang == 'fr' then
 					save.lang = 'en'
 				end
+				self:create_selections()
 				playsound(sfx_select)
 			elseif sel == 'reduceflashing' then
 				save.reduceflashing = save.reduceflashing + 1
@@ -247,13 +281,21 @@ function options:keypressed(button)
 				save.rumble = not save.rumble
 				rumble(1, 1, 0.5)
 				playsound(sfx_select)
-			elseif sel == 'remap' then
-				playsound(sfx_menu_bonk)
+			elseif sel == 'image_path' then
+				if save.image_path == 'images_love' then
+					save.image_path = 'images_peedee'
+				elseif save.image_path == 'images_peedee' then
+					save.image_path = 'images_love'
+				end
+				self:create_assets()
+				playsound(sfx_select)
 			elseif sel == 'clean_scaling' then
 				save.clean_scaling = not save.clean_scaling
 				local w, h, _ = love.window.getMode()
 				love.resize(w, h)
 				playsound(sfx_select)
+			elseif sel == 'remap' then
+				playsound(sfx_menu_bonk)
 			end
 		elseif button == (platform == 'peedee' and 'b' or platform == 'love' and save.secondary) then
 			playsound(sfx_back)
@@ -277,6 +319,7 @@ function options:keypressed(button)
 				elseif save.lang == 'fr' then
 					save.lang = 'en'
 				end
+				self:create_selections()
 				playsound(sfx_select)
 			elseif sel == 'reduceflashing' then
 				save.reduceflashing = save.reduceflashing + 1
@@ -288,16 +331,24 @@ function options:keypressed(button)
 				save.rumble = not save.rumble
 				rumble(1, 1, 0.5)
 				playsound(sfx_select)
-			elseif sel == 'remap' then
-				vars.remap_step = 1
-				self:holdbuttons()
-				vars.handler = 'remap'
-				setmusicvolume(0.5)
+			elseif sel == 'image_path' then
+				if save.image_path == 'images_love' then
+					save.image_path = 'images_peedee'
+				elseif save.image_path == 'images_peedee' then
+					save.image_path = 'images_love'
+				end
+				self:create_assets()
 				playsound(sfx_select)
 			elseif sel == 'clean_scaling' then
 				save.clean_scaling = not save.clean_scaling
 				local w, h, _ = love.window.getMode()
 				love.resize(w, h)
+				playsound(sfx_select)
+			elseif sel == 'remap' then
+				vars.remap_step = 1
+				self:holdbuttons()
+				vars.handler = 'remap'
+				setmusicvolume(0.5)
 				playsound(sfx_select)
 			end
 		end

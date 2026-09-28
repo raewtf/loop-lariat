@@ -50,12 +50,13 @@ end
 
 function howtoplay:initialize(args)
 	assets = {
-		bg_1 = newimage('images/howtoplay/bg_1'),
-		bg_2 = newimage('images/howtoplay/bg_2'),
-		bg_3 = newimage('images/howtoplay/bg_3'),
-		bg_4 = newimage('images/howtoplay/bg_4'),
-		bg_5 = newimage('images/howtoplay/bg_5'),
-		bg_6 = newimage('images/howtoplay/bg_6'),
+		bg_1 = newimage(save.image_path .. '/howtoplay/bg_1'),
+		bg_2 = newimage(save.image_path .. '/howtoplay/bg_2'),
+		bg_3 = newimage(save.image_path .. '/howtoplay/bg_3'),
+		bg_4 = newimage(save.image_path .. '/howtoplay/bg_4'),
+		bg_5 = newimage(save.image_path .. '/howtoplay/bg_5'),
+		bg_6_s = newimage(save.image_path .. '/howtoplay/bg_6_s'),
+		bg_6_l = newimage(save.image_path .. '/howtoplay/bg_6_l'),
 	}
 
 	vars = {
@@ -104,7 +105,15 @@ function howtoplay:update()
 end
 
 function howtoplay:draw()
-	drawimage(assets['bg_' .. vars.page], 0, 0)
+	if vars.page == 6 then
+		if platform == 'peedee' then
+			drawimage(assets['bg_6_l'], 0, 0)
+		elseif platform == 'love' then
+			drawimage(assets['bg_6_s'], 0, 0)
+		end
+	else
+		drawimage(assets['bg_' .. vars.page], 0, 0)
+	end
 
 	if vars.page % 2 == 1 then
 		drawtext(root_beer_med, text('howtoplay_' .. vars.page), 30, 45)
