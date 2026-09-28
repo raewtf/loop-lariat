@@ -49,6 +49,9 @@ elseif platform == 'love' then
 	end
 end
 
+-- NOTE: display best score for current mode
+-- NOTE: display save.lastdaily.score for daily run, if it's somethin' other than zero.
+
 function modeselect:initialize(args)
 	assets = {
 		bg_1 = newimage('images/modeselect/bg_1'),
@@ -108,6 +111,8 @@ function modeselect:update()
 		if pd.buttonJustPressed('down') then self:keypressed('down') end
 		if pd.buttonJustPressed('b') then self:keypressed('b') end
 		if pd.buttonJustPressed('a') then self:keypressed('a') end
+
+		-- NOTE: add crank selecting/hit edge variable to decision modal
 
 		local ticks = pd.getCrankTicks(6)
 		if vars.handler == 'modeselect' then
@@ -242,10 +247,16 @@ function modeselect:keypressed(button)
 				vars.modal_selections = {'1min', '5min', '10min'}
 				vars.modal_selection = 1
 				vars.handler = 'arcade_modal'
+				playsound(sfx_select)
+				setmusicvolume(0.5)
+				moving = false
 			elseif sel == 'time' then
 				vars.modal_selections = {'1min', '5min', '10min'}
 				vars.modal_selection = 1
 				vars.handler = 'time_modal'
+				playsound(sfx_select)
+				setmusicvolume(0.5)
+				moving = false
 			elseif sel == 'marathon' then
 				scenemanager:transitionscene(game, 'marathon')
 			elseif sel == 'daily' then
@@ -261,7 +272,7 @@ function modeselect:keypressed(button)
 			elseif sel == 'vs_2p' then
 				scenemanager:transitionscene(game, 'vs', '2p')
 			elseif sel == 'vs_com' then
-				scenemanager:transitionscene(game, 'vs', 'cpu')
+				scenemanager:transitionscene(game, 'vs', 'com')
 			elseif sel == 'chill' then
 				scenemanager:transitionscene(game, 'chill')
 			end
@@ -291,9 +302,11 @@ function modeselect:keypressed(button)
 			end
 		elseif button == (platform == 'peedee' and 'b' or platform == 'love' and save.secondary) then
 			playsound(sfx_back)
+			setmusicvolume(1)
 			vars.handler = 'modeselect'
 		elseif button == (platform == 'peedee' and 'a' or platform == 'love' and save.primary) then
 			playsound(sfx_select)
+			fademusic()
 			local sel = vars.modal_selections[vars.modal_selection]
 			if sel == '1min' then
 				if vars.handler == 'arcade_modal' then

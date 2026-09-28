@@ -3,6 +3,7 @@ langs = {
 		-- title screen
 		["title_modeselect"] = "Round 'em Up!",
 		["title_howtoplay"] = "How to Play",
+		["title_statistics"] = "Statistics",
 		["title_options"] = "Options",
 		["title_credits"] = "Credits",
 
@@ -65,6 +66,7 @@ langs = {
 		["gameover"] = "Game over, pardner!",
 		["timeup"] = "Time's up, cowboy!",
 		["your_score"] = "Yer score: ",
+		["todays_score"] = "Today's score: ",
 		["best_score"] = "Best: ",
 		["new_best"] = "(New best!)",
 		["total_lassos"] = "Lassos: ",
@@ -150,6 +152,7 @@ langs = {
 		-- title screen
 		["title_modeselect"] = "Raflez-les !",
 		["title_howtoplay"] = "Instructions",
+		["title_statistics"] = "", -- !!
 		["title_options"] = "Options",
 		["title_credits"] = "Crédits",
 
@@ -212,6 +215,7 @@ langs = {
 		["gameover"] = "Terminé, partenaire !",
 		["timeup"] = "Temps écoulé, cowboy !",
 		["your_score"] = "Vot' score : ",
+		["todays_score"] = "", -- !!
 		["best_score"] = "Record : ",
 		["new_best"] = "(Nouveau record !)",
 		["total_lassos"] = "Lassos : ",

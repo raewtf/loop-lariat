@@ -12,6 +12,7 @@ if platform == 'peedee' then
 
 	import 'modeselect'
 	import 'howtoplay'
+	import 'statistics'
 	import 'options'
 	import 'credits'
 
@@ -39,6 +40,7 @@ elseif platform == 'love' then
 
 	modeselect = require 'modeselect'
 	howtoplay = require 'howtoplay'
+	statistics = require 'statistics'
 	options = require 'options'
 	credits = require 'credits'
 
@@ -50,9 +52,9 @@ elseif platform == 'love' then
 	end
 end
 
--- TODO: rubdubdub check
--- TODO: on rubdubdub, move to drink scene
--- TODO: make drink scene
+-- NOTE: rubdubdub check
+-- NOTE: on rubdubdub, move to drink scene
+-- NOTE: make drink scene
 
 function title:initialize(args)
 	assets = {
@@ -84,7 +86,7 @@ function title:initialize(args)
 		returning = args[1] or false,
 		from = args[2] or nil,
 		handler = '',
-		selections = {'modeselect', 'howtoplay', 'options', 'credits'},
+		selections = {'modeselect', 'howtoplay', 'statistics', 'options', 'credits'},
 		random_arrows = {},
 		selection = 1,
 		bonk_offset = 0,
@@ -245,6 +247,8 @@ function title:keypressed(button)
 				scenemanager:transitionscene(modeselect)
 			elseif sel == 'howtoplay' then
 				scenemanager:transitionscene(howtoplay)
+			elseif sel == 'statistics' then
+				scenemanager:transitionscene(statistics)
 			elseif sel == 'options' then
 				scenemanager:transitionscene(options)
 			elseif sel == 'credits' then

@@ -292,6 +292,7 @@ function options:keypressed(button)
 				vars.remap_step = 1
 				self:holdbuttons()
 				vars.handler = 'remap'
+				setmusicvolume(0.5)
 				playsound(sfx_select)
 			elseif sel == 'clean_scaling' then
 				save.clean_scaling = not save.clean_scaling
@@ -342,6 +343,7 @@ function options:keypressed(button)
 			if vars.remap_step > 6 then
 				vars.handler = 'options'
 				self:holdbuttons()
+				setmusicvolume(1)
 				savegame()
 			end
 		else

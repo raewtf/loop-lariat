@@ -1,5 +1,5 @@
 -- Build target. 'peedee' or 'love'
-platform = 'peedee'
+platform = 'love'
 local fps = 30
 
 local pd
@@ -77,7 +77,7 @@ elseif platform == 'love' then
 	gfx = love.graphics
 	fullscreen = false
 
-	version = '1.0.0'
+	version = '1.0.1'
 
 	gfx.setLineStyle('rough')
 	gfx.setLineJoin('miter')
@@ -115,6 +115,12 @@ function savecheck()
 
 	if platform == 'peedee' then
 		if save.gamepad == nil then save.gamepad = true end
+
+		save.image_path = save.image_path or 'images'
+		-- check for löve save conversion
+		if save.image_path ~= 'images' then
+			save.image_path = 'images'
+		end
 	elseif platform == 'love' then
 		if save.gamepad == nil then save.gamepad = false end
 		gamepad = save.gamepad
@@ -127,6 +133,12 @@ function savecheck()
 		save.secondary = save.secondary or 'x'
 
 		save.deadzone = save.deadzone or 0.5
+
+		save.image_path = save.image_path or 'images_love'
+		-- check for PD save conversion
+		if save.image_path == 'images' then
+			save.image_path = 'images_love'
+		end
 
 		if save.clean_scaling == nil then save.clean_scaling = true end
 		if save.rumble == nil then save.rumble = true end
@@ -145,6 +157,20 @@ function savecheck()
 	save.arcade_best = save.arcade_best or 0
 	save.time_best = save.time_best or 0
 	save.marathon_best = save.marathon_best or 0
+
+	save.total_lassos = save.total_lassos or 0
+	save.outlaws_captured = save.outlaws_captured or 0
+	save.blocks_placed = save.blocks_placed or 0
+	save.dynamites_exploded = save.dynamites_exploded or 0
+
+	save.arcade_played = save.arcade_played or 0
+	save.time_played = save.time_played or 0
+	save.marathon_played = save.marathon_played or 0
+	save.daily_played = save.daily_played or 0
+	save.chill_played = save.chill_played or 0
+	save.vs_com_played = save.vs_com_played or 0
+	save.vs_p2_played = save.vs_p2_played or 0
+	-- total game play count would be all of these combined
 
 	save.reduceflashing = save.reduceflashing or (platform == 'peedee' and 2 or platform == 'love' and 0) -- Set to "system" on peedee, "off" in love.
 end
@@ -277,11 +303,12 @@ elseif platform == 'love' then
 				else
 					game:pause()
 				end
-			elseif vars.handler == 'remap' then -- remapping keyboard controls
+			elseif vars.handler == 'remap' then -- exit out of remapping keyboard controls
 				options:restorebuttons()
 				playsound(sfx_back)
 				vars.remap_step = 1
 				vars.handler = 'options'
+				setmusicvolume(1)
 				savegame()
 			end
 		end
@@ -441,11 +468,11 @@ elseif platform == 'love' then
 			fw = w / 400
 			fh = h / 240
 		end
-		if fw < fh and fw >= save.scale then
+		if fw < fh and fw >= 2 then
 			scale = fw
-		elseif fh < fw and fh >= save.scale then
+		elseif fh < fw and fh >= 2 then
 			scale = fh
-		elseif fw == fh and fw >= save.scale then
+		elseif fw == fh and fw >= 2 then
 			scale = fw
 		end
 	end

@@ -123,7 +123,7 @@ function game:initialize(args)
 
 	vars = {
 		mode = args[1] or 'time', -- 'arcade', 'time', 'marathon', 'daily', 'vs', or 'chill'
-		arg1 = args[2], -- if 'arcade' or 'time', number in milliseconds. if 'vs', string that's either 'p2' or 'cpu'.
+		arg1 = args[2], -- if 'arcade' or 'time', number in milliseconds. if 'vs', string that's either 'p2' or 'com'.
 		arg2 = args[3], -- if 'vs', array with number of wins for each player.
 		garbage_threshold = 3,
 		paused = false,
@@ -154,11 +154,11 @@ function game:initialize(args)
 		p.lassos = 0 -- lassos this round
 		-- blocks being juggled
 		p.blocks = {
-			next = self:random_block(),
+			bag = {},
 
-			current = self:random_block(),
 			current_x_offset = 0,
 			current_y_offset = 0,
+
 
 			hold = '',
 			hold_used = false,
@@ -167,6 +167,11 @@ function game:initialize(args)
 
 			tnt_prime_level = 0,
 		}
+
+		-- creating the first two blocks (and the initial bag)
+		p.blocks.current = self:random_block(i)
+		p.blocks.next = self:random_block(i)
+
 		-- grid cursor
 		p.cursor = {
 			x = 3,
@@ -294,6 +299,8 @@ function game:update()
 		if pd.buttonJustPressed('right') then self:keypressed('right') end
 		if pd.buttonJustPressed('b') then self:keypressed('b') end
 		if pd.buttonJustPressed('a') then self:keypressed('a') end
+
+		-- NOTE: add crank scrolling/hit edge variable to results screen
 	end
 
 	for i = 1, (vars.mode == 'vs' and 2 or 1) do
@@ -386,6 +393,7 @@ function game:draw()
 	if assets.anim_overlay ~= nil then drawimagetable(assets.anim_overlay, floor(value('anim_overlay')), 0, 0) end
 
 	-- UI drawing
+	-- NOTE: less confusing way to display NOW and NEXT?
 	if vars.mode == 'vs' then
 		drawimage(assets.ui, 0, 0)
 
@@ -394,7 +402,7 @@ function game:draw()
 		drawtext(root_beer_outline, commalize(vars.player_1.score), 163, 62)
 		if vars.arg1 == 'p2' then
 			drawtext(root_beer_med_outline, text('p2_score'), 237, 99, right)
-		elseif vars.arg1 == 'cpu' then
+		elseif vars.arg1 == 'com' then
 			drawtext(root_beer_med_outline, text('com_score'), 237, 99, right)
 		end
 		drawtext(root_beer_outline, commalize(vars.player_2.score), 237, 110, right)
@@ -556,6 +564,7 @@ function game:draw()
 		drawimagetable(assets.countdown, floor(value('countdown')), 0, 0)
 	end
 
+	-- pause screen
 	if vars.paused then
 		drawimage(assets.half, 0, 0)
 		drawimage(assets.modal, 50, 25)
@@ -571,6 +580,7 @@ function game:draw()
 		end
 	end
 
+	-- results screen
 	if vars.player_1.handler == 'results' then
 		drawimage(assets.half, 0, 0)
 		drawimage(assets.modal, 50, 25)
@@ -578,16 +588,21 @@ function game:draw()
 		drawtext(root_beer, vars.time_up and text('timeup') or text('gameover'), 200, 50, center)
 
 		drawtext(root_beer_med, text('your_score'), 80, 95)
-		drawtext(root_beer, commalize(vars.player_1.score), 322, 86, right)
+		drawtext(root_beer, commalize(vars.player_1.score), 322, 84, right)
 
-		if vars.new_best then
-			drawtext(root_beer_med, text('new_best'), 80, 114)
-		else
-			drawtext(root_beer_med, text('best_score') .. commalize(save[vars.mode .. '_best']), 80, 114)
+		-- display best score if mode isn't daily (where there is no best score).
+		if vars.mode ~= 'daily' then
+			if vars.new_best then
+				drawtext(root_beer_med, text('new_best'), 80, 114)
+			else
+				drawtext(root_beer_med, text('best_score') .. commalize(save[vars.mode .. '_best']), 80, 114)
+			end
 		end
 
+		-- total lassos that game
 		drawtext(root_beer_med, text('total_lassos') .. commalize(vars.player_1.lassos), 320, 114, right)
 
+		-- selection ooptions
 		for i = 1, #vars.results_selections do
 			drawtext(vars.results_selection == i and root_beer_med_outline or root_beer_med, text(vars.results_selections[i]), 200, 150 + (20 * i) - (10 * #vars.results_selections) + (vars.results_selection == i and (-2 + vars.results_bonk_offset) or 0), center)
 		end
@@ -634,6 +649,15 @@ function game:unpause()
 	end
 end
 
+-- Shuffly code from https://gist.github.com/Uradamus/10323382
+function game:shuffle(tbl)
+	for i = #tbl, 2, -1 do
+		local j = randInt(1, i)
+		tbl[i], tbl[j] = tbl[j], tbl[i]
+	end
+	return tbl
+end
+
 -- placing outlaws in the grid, grandomly
 function game:place_outlaws(player)
 	-- player arg
@@ -676,23 +700,31 @@ function game:place_outlaws(player)
 end
 
 -- generate a (weighted-)random block to add into the player's queue.
-function game:random_block()
-	local rand = randInt(1, 105)
-	if rand >= 1 and rand <= 20 then
-		return 'lasso_u_d'
-	elseif rand >= 21 and rand <= 40 then
-		return 'lasso_l_r'
-	elseif rand >= 41 and rand <= 50 then
-		return 'lasso_u_l'
-	elseif rand >= 51 and rand <= 60 then
-		return 'lasso_u_r'
-	elseif rand >= 61 and rand <= 70 then
-		return 'lasso_d_l'
-	elseif rand >= 71 and rand <= 80 then
-		return 'lasso_d_r'
-	elseif rand >= 81 and rand <= 105 then
-		return 'tnt'
+function game:random_block(player)
+	-- player arg
+	local p = vars['player_' .. player]
+
+	if p.blocks.bag[1] == nil then -- there's nothing in the bag. we need to make a new bag!
+		local new_bag = {
+			'lasso_u_d',
+			'lasso_u_d',
+			'lasso_u_d',
+			'lasso_l_r',
+			'lasso_l_r',
+			'lasso_l_r',
+			'lasso_u_l',
+			'lasso_u_r',
+			'lasso_d_l',
+			'lasso_d_r',
+			'tnt',
+			'tnt',
+		}
+
+		p.blocks.bag = self:shuffle(new_bag)
 	end
+
+	local new_item = table.remove(p.blocks.bag)
+	return new_item
 end
 
 -- sends a block to the holding place, depending on its status.
@@ -714,7 +746,7 @@ function game:hold_block(player)
 			else
 				p.blocks.hold_y_offset = -94
 			end
-			p.blocks.next = self:random_block() -- create a new block for next.
+			p.blocks.next = self:random_block(player) -- create a new block for next.
 		else -- ...if there is a hold piece already,
 			local hold_hold = p.blocks.hold -- make a quick copy of hold
 			p.blocks.hold = p.blocks.current -- swap current into hold,
@@ -757,7 +789,7 @@ function game:place_block(player)
 		p.blocks.current = p.blocks.next -- move the 'next' block into the current position
 		p.blocks.current_x_offset = -37
 
-		p.blocks.next = self:random_block() -- draw a random block from the bag for the next block
+		p.blocks.next = self:random_block(player) -- draw a random block from the bag for the next block
 		p.blocks.hold_used = false
 
 		self:find_lasso_segment(1, true) -- to update lasso blocks
@@ -797,7 +829,7 @@ function game:place_block(player)
 		p.blocks.current = p.blocks.next -- move the 'next' block into the current position
 		p.blocks.current_x_offset = -37
 
-		p.blocks.next = self:random_block() -- draw a random block from the bag for the next block
+		p.blocks.next = self:random_block(player) -- draw a random block from the bag for the next block
 		p.blocks.hold_used = false
 
 		lasso = self:find_lasso_segment(player)
@@ -1070,9 +1102,13 @@ function game:over(player)
 	p.handler = 'gameover'
 	rumble(1, 1, 1)
 
-	if save[vars.mode .. '_best'] ~= nil and p.score > save[vars.mode .. '_best'] then
-		vars.new_best = true
-		save[vars.mode .. '_best'] = p.score
+	if vars.mode == 'daily' then
+		save.lastdaily.score = p.score
+	elseif vars.mode ~= 'vs' then
+		if save[vars.mode .. '_best'] ~= nil and p.score > save[vars.mode .. '_best'] then
+			vars.new_best = true
+			save[vars.mode .. '_best'] = p.score
+		end
 	end
 
 	if vars.time ~= nil then
@@ -1082,10 +1118,12 @@ function game:over(player)
 	end
 
 	resettimer('anim_board_shake_' .. player, 1000, 5, 0, 'linear', function()
-		newmusic('audio/music/chill', true)
-		vars.results_selections = {'new_game', 'go_back'}
-		vars.results_selection = 1
-		if p.handler == 'gameover' then p.handler = 'results' end
+		afterdelay('results_delay', 1000, function()
+			newmusic('audio/music/chill', true)
+			vars.results_selections = {'new_game', 'go_back'}
+			vars.results_selection = 1
+			if p.handler == 'gameover' then p.handler = 'results' end
+		end)
 	end)
 
 end
@@ -1169,6 +1207,7 @@ function game:keypressed(button)
 			if sel == 'resume' then
 				self:unpause()
 			elseif sel == 'quit' then
+				fademusic()
 				scenemanager:transitionscene(modeselect)
 			end
 		end
@@ -1193,9 +1232,11 @@ function game:keypressed(button)
 			end
 		elseif button == (platform == 'peedee' and 'b' or platform == 'love' and save.secondary) then
 			playsound(sfx_back)
+			fademusic()
 			scenemanager:transitionscene(modeselect)
 		elseif button == (platform == 'peedee' and 'a' or platform == 'love' and save.primary) then
 			playsound(sfx_select)
+			fademusic()
 			local sel = vars.results_selections[vars.results_selection]
 			if sel == 'new_game' then
 				scenemanager:transitionscene(game, vars.mode, vars.arg1, vars.arg2)
